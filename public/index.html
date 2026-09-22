@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JP Calcula Tus Beneficios</title>
+    <meta name="description" content="Calculadora laboral de beneficios sociales en Perú: CTS, Gratificación, Liquidación, Sueldo Neto y Vacaciones.">
+    <meta property="og:title" content="JP Calcula Tus Beneficios">
+    <meta property="og:description" content="Calculadora laboral de beneficios sociales en Perú: CTS, Gratificación, Liquidación, Sueldo Neto y Vacaciones.">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;800&display=swap" rel="stylesheet">
+    <link href="nav.css" rel="stylesheet">
+    <script src="reminder.js" defer></script>
+    <style>
+        :root {
+            --bg-dark: #0a1128;
+            --card-dark: #141b2d;
+            --gray: #9aa5b1;
+            --cts: #3a86ff;
+            --grati: #e5484d;
+            --liq: #f5a623;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background: var(--bg-dark);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 420px;
+            padding: 28px 24px 40px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 1.5em;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            margin: 0 0 20px 0;
+        }
+        .logo-wrapper {
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #7a1f24;
+            margin: 0 auto 22px;
+        }
+        .logo-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .subtitle {
+            color: var(--gray);
+            font-size: 0.95em;
+            margin-bottom: 24px;
+        }
+        .menu-btn {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
+            background: var(--card-dark);
+            border: 2px solid var(--btn-color, #fff);
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin-bottom: 16px;
+            text-decoration: none;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.05em;
+            text-align: left;
+        }
+        .menu-btn .icon { font-size: 1.6em; line-height: 1; }
+        .menu-btn.grati { --btn-color: var(--grati); }
+        .menu-btn.cts { --btn-color: var(--cts); }
+        .menu-btn.liq { --btn-color: var(--liq); }
+        .menu-btn.neto { --btn-color: #14a085; }
+        .menu-btn.vac { --btn-color: #7c3fc9; }
+        footer {
+            color: var(--gray);
+            font-size: 0.7em;
+            margin-top: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JP CALCULA TUS BENEFICIOS</h1>
+
+        <div class="logo-wrapper">
+            <img src="Gemini_Generated_Image_i91xsci91xsci91x.png" alt="Logo JP">
+        </div>
+
+        <p class="subtitle">Selecciona la herramienta que deseas utilizar</p>
+
+        <div id="jpReminderBox"></div>
+
+        <a href="gratificacion.html" class="menu-btn grati">
+            <span class="icon">☀️</span>
+            <span>CALCULAR<br>GRATIFICACIÓN</span>
+        </a>
+
+        <a href="cts.html" class="menu-btn cts">
+            <span class="icon">🔒</span>
+            <span>CALCULAR CTS</span>
+        </a>
+
+        <a href="liquidacion.html" class="menu-btn liq">
+            <span class="icon">📄</span>
+            <span>CALCULAR<br>LIQUIDACIÓN (PDF)</span>
+        </a>
+
+        <a href="sueldoneto.html" class="menu-btn neto">
+            <span class="icon">💵</span>
+            <span>SUELDO NETO<br>(ONP/AFP + Renta)</span>
+        </a>
+
+        <a href="vacaciones.html" class="menu-btn vac">
+            <span class="icon">🌴</span>
+            <span>CALCULAR<br>VACACIONES</span>
+        </a>
+
+        <footer>JPHR v1.0.0 | Herramientas de Gestión de Recursos Humanos</footer>
+    </div>
+</body>
+</html>

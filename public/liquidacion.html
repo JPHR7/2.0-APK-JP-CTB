@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPHR | Calculadora de Liquidación</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="nav.css" rel="stylesheet">
+    <script src="nav.js" defer></script>
+    <script src="historial.js" defer></script>
+    <script src="theme-toggle.js" defer></script>
+    <script src="glosario.js" defer></script>
+    <style>
+        :root { --primary: #8a6100; --secondary: #f5a623; --accent: #d9534f; --bg: #f4f7f9; }
+        body { font-family: 'Roboto', sans-serif; background: var(--bg); padding: 20px; color: #333; margin: 0;
+            background-image: linear-gradient(rgba(244,247,249,0.94), rgba(244,247,249,0.94)), url('bg-pattern.jpg');
+            background-size: cover; background-attachment: fixed; background-position: center; }
+        .container { max-width: 850px; margin: 20px auto; background: rgba(255,255,255,0.94); padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .logo-container { text-align: center; margin-bottom: 20px; }
+        .logo-img { max-width: 250px; height: auto; }
+        header { text-align: center; border-bottom: 4px solid var(--primary); margin-bottom: 30px; padding-bottom: 10px; }
+        h1 { color: var(--primary); margin: 0; letter-spacing: 1px; font-size: 1.8em; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .section-title { grid-column: span 2; background: #f0f2f5; padding: 10px 15px; font-weight: bold; border-radius: 6px; border-left: 5px solid var(--primary); margin-top: 10px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-size: 0.9em; font-weight: bold; margin-bottom: 8px; color: #444; }
+        input, select { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1em; outline: none; }
+        .btn-calc { grid-column: span 2; text-align: center; margin-top: 30px; }
+        button { background: var(--primary); color: white; padding: 18px 60px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1.2em; transition: 0.3s; }
+        button:hover { background: var(--secondary); transform: translateY(-2px); }
+        #resultado { display: none; margin-top: 40px; }
+        .bloque { padding: 20px 25px; background: #fff; border: 2px solid #e0e6ed; border-radius: 12px; margin-bottom: 20px; }
+        .bloque h4 { margin: 0 0 10px 0; color: var(--primary); }
+        .res-line { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #edf2f7; font-size: 0.95em; }
+        .res-line.subtotal { font-weight: bold; border-bottom: none; border-top: 2px solid #e0e6ed; margin-top: 5px; padding-top: 12px; }
+        .total { font-size: 1.6em; color: var(--accent); font-weight: bold; margin-top: 15px; background: #fff5f5; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; }
+        .descuento-line { color: var(--accent); }
+        footer { text-align: center; margin-top: 40px; padding: 20px; font-size: 0.75em; color: #777; line-height: 1.6; border-top: 1px solid #eee; }
+        footer strong { color: #555; }
+        @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } .btn-calc, .section-title { grid-column: span 1; } }
+    </style>
+</head>
+<body>
+
+<div class="jp-topbar" style="background: var(--primary);">
+    <a href="index.html" class="jp-back">←</a>
+    <span class="jp-title">LIQUIDACIÓN</span>
+    <div>
+        <button class="jp-theme-btn" id="jpThemeBtn" onclick="jpToggleTema()">🌙</button>
+        <button onclick="jpToggleSidebar()">☰</button>
+    </div>
+</div>
+
+<div class="jp-sidebar-overlay" id="jpOverlay" onclick="jpToggleSidebar()"></div>
+<div class="jp-sidebar" id="jpSidebar">
+    <div class="jp-sidebar-header">
+        <span>JP CALCULA</span>
+        <button onclick="jpToggleSidebar()">✕</button>
+    </div>
+    <a href="index.html">🏠 Inicio</a>
+    <a href="gratificacion.html">☀️ Gratificación</a>
+    <a href="cts.html">🔒 CTS</a>
+    <a href="liquidacion.html" class="active">📄 Liquidación</a>
+    <a href="sueldoneto.html">💵 Sueldo Neto</a>
+    <a href="vacaciones.html">🌴 Vacaciones</a>
+</div>
+
+<div class="container">
+    <div class="logo-container">
+        <img src="Gemini_Generated_Image_i91xsci91xsci91x.png" alt="Logo JPHR" class="logo-img">
+    </div>
+
+    <header>
+        <h1>Calculadora de Liquidación</h1>
+        <p style="margin-top: 5px; color: #666;">CTS Trunca + Gratificación Trunca + Vacaciones Truncas (Régimen General)</p>
+    </header>
+
+    <div class="grid">
+        <div class="section-title">👤 Datos del Trabajador</div>
+        <div class="form-group">
+            <label>Nombre Completo:</label>
+            <input type="text" id="nombreTrabajador" placeholder="Ej: Juan Pérez García">
+        </div>
+        <div class="form-group">
+            <label>DNI:</label>
+            <input type="text" id="dniTrabajador" maxlength="8" inputmode="numeric" placeholder="Ej: 12345678">
+        </div>
+
+        <div class="section-title">📅 Datos del Cese</div>
+        <div class="form-group">
+            <label>Fecha de Ingreso:</label>
+            <input type="date" id="fechaIngreso">
+        </div>
+        <div class="form-group">
+            <label>Fecha de Cese:</label>
+            <input type="date" id="fechaCese">
+        </div>
+
+        <div class="section-title">💰 Remuneración</div>
+        <div class="form-group">
+            <label>Remuneración Mensual (S/):</label>
+            <input type="number" id="sueldo" placeholder="Ej: 1800">
+        </div>
+        <div class="form-group">
+            <label>Promedio Comisiones/H. Extra (S/):</label>
+            <input type="number" id="promedioVariable" value="0" placeholder="0 si es sueldo fijo">
+        </div>
+        <div class="form-group">
+            <label>Bonificación Extraordinaria:</label>
+            <select id="regimenSalud">
+                <option value="0.09">EsSalud (9%)</option>
+                <option value="0.0675">EPS (6.75%)</option>
+            </select>
+        </div>
+
+        <div class="jp-auto-box" style="grid-column: span 2;">
+            ✅ El <strong>1/6 de gratificación</strong> que se suma a la CTS Trunca ahora se calcula automáticamente con tu sueldo y fecha de ingreso — sin incluir el Bono Extraordinario del 9%/6.75%, que por ley no forma parte de este cálculo.
+        </div>
+
+        <div class="section-title">➕ Otros Conceptos</div>
+        <div class="form-group">
+            <label>Días de vacaciones ya tomados:</label>
+            <input type="number" id="diasVacacionesTomados" value="0" min="0" step="1" placeholder="Ej: 0">
+            <small style="margin-top:6px; color:#777;">Opcional. Se descontarán del total acumulado.</small>
+        </div>
+
+        <div class="form-group">
+            <label>Otros Ingresos (DL) (S/):</label>
+            <input type="number" id="otrosDL" value="0">
+        </div>
+        <div class="form-group">
+            <label>Devolución 5ta Categoría (S/):</label>
+            <input type="number" id="devolucionQuinta" value="0">
+        </div>
+
+        <div class="section-title">➖ Descuentos</div>
+        <div class="form-group">
+            <label>AFP Aporte (%):</label>
+            <input type="number" id="afpAportePct" value="10" step="0.01">
+        </div>
+        <div class="form-group">
+            <label>AFP Prima Seguro (%):</label>
+            <input type="number" id="afpPrimaPct" value="1.37" step="0.01">
+        </div>
+        <div class="form-group">
+            <label>AFP Comisión (S/):</label>
+            <input type="number" id="afpComision" value="0">
+        </div>
+        <div class="form-group">
+            <label>ONP (S/):</label>
+            <input type="number" id="onp" value="0">
+        </div>
+        <div class="form-group">
+            <label>Otros Descuentos (S/):</label>
+            <input type="number" id="otrosDescuentos" value="0">
+        </div>
+
+        <div class="btn-calc" style="grid-column: span 2;">
+            <div class="jp-regimen-box" style="text-align:left;">
+                <span class="jp-regimen-title">🏢 Régimen Laboral</span>
+                <div class="jp-switch-row">
+                    <span class="jp-switch-label">Aplicar régimen MYPE - Pequeña Empresa (50% en CTS, Gratificación y Vacaciones)</span>
+                    <label class="jp-switch">
+                        <input type="checkbox" id="regimenMype">
+                        <span class="jp-switch-slider"></span>
+                    </label>
+                </div>
+                <p class="jp-regimen-nota">Afecta CTS Trunca, Gratificación Trunca y Vacaciones Truncas. No aplica a Microempresa (sin CTS ni gratificación).</p>
+            </div>
+        </div>
+
+        <div id="jpErrorBox" class="jp-error-box"></div>
+
+        <div class="btn-calc">
+            <button onclick="ejecutarCalculoLiquidacion()">CALCULAR LIQUIDACIÓN</button>
+        </div>
+    </div>
+
+    <div id="resultado">
+        <div class="bloque">
+            <h4>Compensación por Tiempo de Servicios (CTS Trunca)</h4>
+            <div class="res-line"><span>Tiempo Computable:</span> <span id="resCtsTiempo">-</span></div>
+            <div class="res-line"><span>Monto Computable:</span> <span id="resCtsBase">S/ 0.00</span></div>
+            <div class="res-line subtotal"><span>CTS Total:</span> <span id="resCtsTotal">S/ 0.00</span></div>
+        </div>
+
+        <div class="bloque">
+            <h4>Gratificación Trunca</h4>
+            <div class="res-line"><span>Meses Computables:</span> <span id="resGratiTiempo">-</span></div>
+            <div class="res-line"><span>Gratificación Bruta:</span> <span id="resGratiBruta">S/ 0.00</span></div>
+            <div class="res-line"><span>Bonificación Extraordinaria:</span> <span id="resGratiBono">S/ 0.00</span></div>
+            <div class="res-line subtotal"><span>Gratificación Total:</span> <span id="resGratiTotal">S/ 0.00</span></div>
+        </div>
+
+        <div class="bloque">
+            <h4>Vacaciones Truncas</h4>
+            <div class="res-line"><span>Tiempo Computable (Restando tomadas):</span> <span id="resVacTiempo">-</span></div>
+            <div class="res-line subtotal"><span>Vacaciones Total:</span> <span id="resVacTotal">S/ 0.00</span></div>
+        </div>
+
+        <div class="bloque">
+            <h4>Resumen Final</h4>
+            <div class="res-line"><span>Total Liquidación de Beneficios Sociales:</span> <span id="resTotalLiq" style="font-weight:bold;">S/ 0.00</span></div>
+            <div class="res-line descuento-line"><span>Total Descuentos:</span> <span id="resTotalDesc">- S/ 0.00</span></div>
+            <div class="total"><span>Total a Pagar:</span> <span id="resTotalFinal">S/ 0.00</span></div>
+
+            <details class="jp-explicacion">
+                <summary>¿Cómo se calculó?</summary>
+                <div class="jp-explicacion-body" id="jpExplicacion"></div>
+            </details>
+        </div>
+    </div>
+
+    <div class="jp-historial">
+        <div class="jp-historial-header">
+            <span>📜 Historial de Cálculos</span>
+            <button type="button" onclick="jpBorrarHistorial('jp_hist_liquidacion')">Borrar</button>
+        </div>
+        <div id="jpHistorialLista"></div>
+    </div>
+
+    <div id="pdfContainer" class="btn-calc" style="display:none; margin-top:25px;">
+        <button type="button" onclick="generarPDF()" style="background:#198754;">
+            📄 GENERAR REPORTE PDF
+        </button>
+    </div>
+
+    <div class="logo-container" style="margin-top: 30px;">
+        <img src="Gemini_Generated_Image_i91xsci91xsci91x.png" alt="Logo JPHR" style="max-width: 120px;">
+    </div>
+
+    <footer>
+        <p>
+            © 2026 Creado por <strong>Jeferson Piero Gonzales Vera</strong>. Todos los derechos reservados.<br>
+            Los cálculos son aproximados y están basados en la normativa laboral peruana vigente. No incluye indemnización por despido arbitrario.<br>
+            Si deseas algún servicio preciso, contáctame al correo: <strong>jefersonpgv29@gmail.com</strong>.
+        </p>
+    </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+function calcularTiempoSemestral(fInicioReal, fFinReal, esGrati = false) {
+    if (fInicioReal > fFinReal) return { meses: 0, dias: 0 };
+
+    let diaInicio = fInicioReal.getDate();
+    let mesInicio = fInicioReal.getMonth();
+    let anioInicio = fInicioReal.getFullYear();
+
+    let diaFin = fFinReal.getDate();
+    let mesFin = fFinReal.getMonth();
+    let anioFin = fFinReal.getFullYear();
+
+    let meses = (anioFin - anioInicio) * 12 + (mesFin - mesInicio);
+    let dias = 0;
+
+    if (diaFin >= diaInicio) {
+        dias = diaFin - diaInicio + 1;
+    } else {
+        meses--;
+        let ultimoDiaMesAnterior = new Date(anioFin, mesFin, 0).getDate();
+        dias = (ultimoDiaMesAnterior - diaInicio + 1) + diaFin;
+    }
+
+    if (dias >= 30) {
+        meses++;
+        dias = 0;
+    }
+
+    if (meses > 6) { meses = 6; dias = 0; }
+    if (meses < 0) { meses = 0; dias = 0; }
+
+    if (esGrati) {
+        dias = 0; 
+    }
+
+    return { meses, dias };
+}
+
+function calcularTiempoTotalVacaciones(fechaInicio, fechaFin) {
+    if (fechaFin < fechaInicio) return { meses: 0, dias: 0 };
+
+    let d1 = fechaInicio.getDate();
+    let m1 = fechaInicio.getMonth() + 1;
+    let y1 = fechaInicio.getFullYear();
+
+    let d2 = fechaFin.getDate();
+    let m2 = fechaFin.getMonth() + 1;
+    let y2 = fechaFin.getFullYear();
+
+    if (d2 === 31) {
+        d2 = 30;
+    }
+    if (d1 === 31) {
+        d1 = 30;
+    }
+
+    let totalDias = (y2 - y1) * 360 + (m2 - m1) * 30 + (d2 - d1) + 1;
+    if (totalDias < 0) totalDias = 0;
+
+    let meses = Math.floor(totalDias / 30);
+    let dias = totalDias % 30;
+
+    return { meses, dias };
+}
+
+function semestreCTS(fechaCese) {
+    const mes = fechaCese.getMonth();
+    const anio = fechaCese.getFullYear();
+    if (mes >= 4 && mes <= 9) return { inicio: new Date(anio, 4, 1), fin: new Date(anio, 9, 31) };
+    if (mes >= 10) return { inicio: new Date(anio, 10, 1), fin: new Date(anio + 1, 3, 30) };
+    return { inicio: new Date(anio - 1, 10, 1), fin: new Date(anio, 3, 30) };
+}
+
+function semestreGratificacion(fechaCese) {
+    const mes = fechaCese.getMonth();
+    const anio = fechaCese.getFullYear();
+    if (mes <= 5) return { inicio: new Date(anio, 0, 1), fin: new Date(anio, 5, 30) };
+    return { inicio: new Date(anio, 6, 1), fin: new Date(anio, 11, 31) };
+}
+
+// Gratificación bruta (SIN Bono Extraordinario) del semestre que corresponde al "sexto" de la CTS Trunca:
+// diciembre si el semestre de CTS es Nov-Abr, julio si es May-Oct.
+function calcularSextoGratificacionLiq(ctsPeriodoInicio, fechaIngreso, sueldo, promedioVariable, factor) {
+    const anio = ctsPeriodoInicio.getFullYear();
+    let inicioGrati, finGrati, mesGrati;
+    if (ctsPeriodoInicio.getMonth() === 10) { // Noviembre -> sexto de Diciembre
+        inicioGrati = new Date(anio, 6, 1); finGrati = new Date(anio, 11, 31); mesGrati = 'diciembre';
+    } else { // Mayo -> sexto de Julio
+        inicioGrati = new Date(anio, 0, 1); finGrati = new Date(anio, 5, 30); mesGrati = 'julio';
+    }
+    const fInicio = fechaIngreso > inicioGrati ? fechaIngreso : inicioGrati;
+    const { meses, dias } = calcularTiempoSemestral(fInicio, finGrati, false);
+    // D.S. 005-2002-TR, Art. 3.4: solo meses calendario completos, sin prorratear días.
+    let gratificacionBruta = meses === 6 ? sueldo + promedioVariable : ((sueldo + promedioVariable) / 6) * meses;
+    gratificacionBruta *= factor;
+    return { gratificacionBruta, mesGrati };
+}
+
+function ejecutarCalculoLiquidacion() {
+    const fIngresoInput = document.getElementById('fechaIngreso').value;
+    const fCeseInput = document.getElementById('fechaCese').value;
+    if (!fIngresoInput || !fCeseInput) { jpMostrarError('jpErrorBox', '⚠️ Ingresa la fecha de ingreso y la fecha de cese para poder calcular.'); return; }
+    jpOcultarError('jpErrorBox');
+
+    const partesIngreso = fIngresoInput.split('-');
+    const fechaIngreso = new Date(partesIngreso[0], partesIngreso[1] - 1, partesIngreso[2]);
+    const partesCese = fCeseInput.split('-');
+    const fechaCese = new Date(partesCese[0], partesCese[1] - 1, partesCese[2]);
+
+    const sueldo = parseFloat(document.getElementById('sueldo').value) || 0;
+    const promedioVariable = parseFloat(document.getElementById('promedioVariable').value) || 0;
+    const bonoPct = parseFloat(document.getElementById('regimenSalud').value);
+    const otrosDL = parseFloat(document.getElementById('otrosDL').value) || 0;
+    const devolucionQuinta = parseFloat(document.getElementById('devolucionQuinta').value) || 0;
+    const afpAportePct = (parseFloat(document.getElementById('afpAportePct').value) || 0) / 100;
+    const afpPrimaPct = (parseFloat(document.getElementById('afpPrimaPct').value) || 0) / 100;
+    const afpComision = parseFloat(document.getElementById('afpComision').value) || 0;
+    const onp = parseFloat(document.getElementById('onp').value) || 0;
+    const otrosDescuentos = parseFloat(document.getElementById('otrosDescuentos').value) || 0;
+    const esMype = document.getElementById('regimenMype').checked;
+    const factor = esMype ? 0.5 : 1;
+
+    const ctsPeriodo = semestreCTS(fechaCese);
+    const { gratificacionBruta: sextoBase, mesGrati } = calcularSextoGratificacionLiq(ctsPeriodo.inicio, fechaIngreso, sueldo, promedioVariable, factor);
+    const unSexto = sextoBase / 6;
+
+    const fInicioCTS = fechaIngreso > ctsPeriodo.inicio ? fechaIngreso : ctsPeriodo.inicio;
+    const cts = calcularTiempoSemestral(fInicioCTS, fechaCese, false);
+    const ctsComputable = sueldo + unSexto;
+    const ctsTotal = ((ctsComputable / 12) * cts.meses + (ctsComputable / 12 / 30) * cts.dias) * factor;
+
+    const gratiPeriodo = semestreGratificacion(fechaCese);
+    const fInicioGrati = fechaIngreso > gratiPeriodo.inicio ? fechaIngreso : gratiPeriodo.inicio;
+    const grati = calcularTiempoSemestral(fInicioGrati, fechaCese, true);
+    const gratiBruta = (((sueldo + promedioVariable) / 6) * grati.meses) * factor;
+    const gratiBono = gratiBruta * bonoPct;
+    const gratiTotal = gratiBruta + gratiBono;
+
+    const vacTotalTiempo = calcularTiempoTotalVacaciones(fechaIngreso, fechaCese);
+    const diasVacacionesTomados = Math.max(0, parseInt(document.getElementById('diasVacacionesTomados').value) || 0);
+
+    let diasTrabajadosTotales = (vacTotalTiempo.meses * 30) + vacTotalTiempo.dias;
+    let diasTrabajadosDescontados = diasVacacionesTomados * 12; 
+    let diasTrabajadosPendientes = Math.max(0, diasTrabajadosTotales - diasTrabajadosDescontados);
+
+    const vacMesesAjustados = Math.floor(diasTrabajadosPendientes / 30);
+    const vacDiasAjustados = diasTrabajadosPendientes % 30;
+    const vacTotal = ((diasTrabajadosPendientes * sueldo) / 360) * factor;
+
+    const totalLiquidacion = ctsTotal + gratiTotal + vacTotal + devolucionQuinta + otrosDL;
+    const afpAporte = (vacTotal + otrosDL) * afpAportePct;
+    const afpPrima = (vacTotal + otrosDL) * afpPrimaPct;
+    const totalDescuentos = afpAporte + afpPrima + afpComision + onp + otrosDescuentos;
+    const totalAPagar = totalLiquidacion - totalDescuentos;
+
+    document.getElementById('resCtsTiempo').innerText = `${cts.meses} meses y ${cts.dias} días`;
+    document.getElementById('resCtsBase').innerText = `S/ ${ctsComputable.toFixed(2)}`;
+    document.getElementById('resCtsTotal').innerText = `S/ ${ctsTotal.toFixed(2)}`;
+
+    document.getElementById('resGratiTiempo').innerText = `${grati.meses} meses`;
+    document.getElementById('resGratiBruta').innerText = `S/ ${gratiBruta.toFixed(2)}`;
+    document.getElementById('resGratiBono').innerText = `S/ ${gratiBono.toFixed(2)}`;
+    document.getElementById('resGratiTotal').innerText = `S/ ${gratiTotal.toFixed(2)}`;
+
+    document.getElementById('resVacTiempo').innerText =
+        `${vacMesesAjustados} meses y ${vacDiasAjustados} días` +
+        (diasVacacionesTomados > 0 ? ` (descontando ${diasVacacionesTomados} día(s) tomados)` : '');
+    document.getElementById('resVacTotal').innerText = `S/ ${vacTotal.toFixed(2)}`;
+
+    document.getElementById('resTotalLiq').innerText = `S/ ${totalLiquidacion.toFixed(2)}`;
+    document.getElementById('resTotalDesc').innerText = `- S/ ${totalDescuentos.toFixed(2)}`;
+    document.getElementById('resTotalFinal').innerText = `S/ ${totalAPagar.toFixed(2)}`;
+
+    document.getElementById('jpExplicacion').innerHTML = `
+${esMype ? '<strong>Régimen MYPE Pequeña Empresa aplicado (50% en CTS, Gratificación y Vacaciones)</strong><br><br>' : ''}
+CTS Trunca = (${ctsComputable.toFixed(2)}/12 × ${cts.meses} + ${ctsComputable.toFixed(2)}/12/30 × ${cts.dias}) ${esMype ? '× 0.5' : ''} = S/ ${ctsTotal.toFixed(2)}<br>
+Gratificación Bruta = (${sueldo}/6 × ${grati.meses}) ${esMype ? '× 0.5' : ''} = S/ ${gratiBruta.toFixed(2)} + Bono ${money(gratiBono)} = S/ ${gratiTotal.toFixed(2)}<br>
+Vacaciones Truncas = (${diasTrabajadosPendientes} días × ${sueldo} / 360) ${esMype ? '× 0.5' : ''} = S/ ${vacTotal.toFixed(2)}<br>
+<strong>Total Liquidación = ${ctsTotal.toFixed(2)} + ${gratiTotal.toFixed(2)} + ${vacTotal.toFixed(2)} + ${devolucionQuinta.toFixed(2)} + ${otrosDL.toFixed(2)} = S/ ${totalLiquidacion.toFixed(2)}</strong><br>
+Descuentos = AFP Aporte ${money(afpAporte)} + Prima ${money(afpPrima)} + Comisión ${money(afpComision)} + ONP ${money(onp)} + Otros ${money(otrosDescuentos)} = S/ ${totalDescuentos.toFixed(2)}<br>
+<strong>Total a Pagar = ${totalLiquidacion.toFixed(2)} − ${totalDescuentos.toFixed(2)} = S/ ${totalAPagar.toFixed(2)}</strong>
+    `;
+
+    document.getElementById('resultado').style.display = 'block';
+    document.getElementById('pdfContainer').style.display = 'block';
+    document.getElementById('resultado').scrollIntoView({ behavior: 'smooth' });
+
+    const nombreHist = document.getElementById('nombreTrabajador').value.trim();
+    const dniHist = document.getElementById('dniTrabajador').value.trim();
+    jpGuardarHistorial('jp_hist_liquidacion', {
+        titulo: (nombreHist ? `Liquidación - ${nombreHist}` : 'Liquidación') + (esMype ? ' (MYPE)' : ''),
+        detalle: `${dniHist ? 'DNI: ' + dniHist + ' | ' : ''}Cese: ${fCeseInput} | Total a pagar: S/ ${totalAPagar.toFixed(2)}`,
+    });
+}
+
+function money(v) { return 'S/ ' + Number(v).toFixed(2); }
+
+window.addEventListener('DOMContentLoaded', () => jpRenderHistorial('jp_hist_liquidacion'));
+
+function generarPDF() {
+    const { jsPDF } = window.jspdf;
+
+    const nombre = document.getElementById('nombreTrabajador').value.trim();
+    const dni = document.getElementById('dniTrabajador').value.trim();
+    const fIngreso = document.getElementById('fechaIngreso').value;
+    const fCese = document.getElementById('fechaCese').value;
+    const sueldo = parseFloat(document.getElementById('sueldo').value) || 0;
+
+    if (!nombre || !dni) {
+        alert('Antes de generar el PDF, ingresa el nombre completo y el DNI del trabajador.');
+        return;
+    }
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const margen = 18;
+    const ancho = 210;
+    let y = 18;
+
+    const textoResultado = id => document.getElementById(id).innerText || '-';
+    const moneda = valor => 'S/ ' + Number(valor).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fechaPDF = fecha => fecha ? fecha.split('-').reverse().join('/') : '-';
+
+    function titulo(texto) {
+        pdf.setFillColor(0, 51, 102);
+        pdf.rect(margen, y, ancho - margen * 2, 9, 'F');
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(10.5);
+        pdf.text(texto, margen + 4, y + 6);
+        pdf.setTextColor(40, 40, 40);
+        y += 14;
+    }
+
+    function linea(etiqueta, valor, negrita = false) {
+        pdf.setFont('helvetica', negrita ? 'bold' : 'normal');
+        pdf.setFontSize(negrita ? 9.5 : 9);
+        pdf.text(etiqueta, margen, y);
+        pdf.text(String(valor), ancho - margen, y, { align: 'right' });
+        y += 6;
+    }
+
+    pdf.setTextColor(0, 51, 102);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(20);
+    pdf.text('JPHR', margen, y);
+    pdf.setFontSize(14);
+    pdf.text('REPORTE DE LIQUIDACIÓN', ancho - margen, y, { align: 'right' });
+    y += 7;
+
+    pdf.setTextColor(100, 100, 100);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8.5);
+    const esMypePDF = document.getElementById('regimenMype').checked;
+    pdf.text('CTS Trunca + Gratificación Trunca + Vacaciones Truncas', margen, y);
+    pdf.text(esMypePDF ? 'Régimen MYPE - Pequeña Empresa' : 'Régimen General', ancho - margen, y, { align: 'right' });
+    y += 8;
+
+    pdf.setDrawColor(0, 51, 102);
+    pdf.setLineWidth(0.7);
+    pdf.line(margen, y, ancho - margen, y);
+    y += 9;
+
+    titulo('DATOS DEL TRABAJADOR');
+    linea('Nombre completo:', nombre, true);
+    linea('DNI:', dni);
+    linea('Fecha de ingreso:', fechaPDF(fIngreso));
+    linea('Fecha de cese:', fechaPDF(fCese));
+    linea('Remuneración mensual:', moneda(sueldo));
+    y += 4;
+
+    titulo('DETALLE DE BENEFICIOS SOCIALES');
+    linea('CTS - Tiempo computable:', textoResultado('resCtsTiempo'));
+    linea('CTS - Monto computable:', textoResultado('resCtsBase'));
+    linea('CTS Trunca:', textoResultado('resCtsTotal'), true);
+    y += 2;
+
+    linea('Gratificación - Meses computables:', textoResultado('resGratiTiempo'));
+    linea('Gratificación Bruta:', textoResultado('resGratiBruta'));
+    linea('Bonificación Extraordinaria:', textoResultado('resGratiBono'));
+    linea('Gratificación Trunca Total:', textoResultado('resGratiTotal'), true);
+    y += 2;
+
+    linea('Vacaciones - Tiempo computable:', textoResultado('resVacTiempo'));
+    linea('Días de vacaciones ya tomados:', document.getElementById('diasVacacionesTomados').value || '0');
+    linea('Vacaciones Truncas:', textoResultado('resVacTotal'), true);
+    y += 4;
+
+    titulo('OTROS CONCEPTOS Y DESCUENTOS');
+    linea('Otros (DL):', moneda(parseFloat(document.getElementById('otrosDL').value) || 0));
+    linea('Devolución 5ta Categoría:', moneda(parseFloat(document.getElementById('devolucionQuinta').value) || 0));
+    linea('AFP Aporte:', 'Incluido en total de descuentos');
+    linea('AFP Prima Seguro:', 'Incluido en total de descuentos');
+    linea('AFP Comisión:', moneda(parseFloat(document.getElementById('afpComision').value) || 0));
+    linea('ONP:', moneda(parseFloat(document.getElementById('onp').value) || 0));
+    linea('Otros descuentos:', moneda(parseFloat(document.getElementById('otrosDescuentos').value) || 0));
+    y += 4;
+
+    titulo('RESUMEN FINAL');
+    linea('Total Liquidación de Beneficios Sociales:', textoResultado('resTotalLiq'), true);
+    linea('Total Descuentos:', textoResultado('resTotalDesc'));
+
+    y += 3;
+    pdf.setFillColor(245, 245, 245);
+    pdf.roundedRect(margen, y, ancho - margen * 2, 19, 3, 3, 'F');
+    pdf.setTextColor(0, 51, 102);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(12.5);
+    pdf.text('TOTAL NETO A PAGAR', margen + 5, y + 8);
+    pdf.setFontSize(15);
+    pdf.text(textoResultado('resTotalFinal'), ancho - margen - 5, y + 8, { align: 'right' });
+    y += 29;
+
+    pdf.setTextColor(100, 100, 100);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(7.8);
+    const nota = 'Documento generado mediante JPHR. Los cálculos son aproximados y están basados en la normativa laboral peruana vigente. No incluye indemnización por despido arbitrario.';
+    pdf.text(pdf.splitTextToSize(nota, ancho - margen * 2), margen, y);
+    y += 14;
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Generado por Jeferson Piero Gonzales Vera', margen, y);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('© 2026 JPHR - Todos los derechos reservados.', ancho - margen, y, { align: 'right' });
+
+    const nombreArchivo = 'Liquidacion_' + nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '').trim().replace(/\s+/g, '_') + '.pdf';
+    pdf.save(nombreArchivo);
+}
+</script>
+</body>
+</html>

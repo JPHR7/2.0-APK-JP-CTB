@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPHR | Calculadora de CTS </title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="nav.css" rel="stylesheet">
+    <script src="nav.js" defer></script>
+    <script src="historial.js" defer></script>
+    <script src="theme-toggle.js" defer></script>
+    <script src="glosario.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root { --primary: #0b3d91; --secondary: #1a56db; --accent: #d9534f; --bg: #f4f7f9; }
+        body { font-family: 'Roboto', sans-serif; background: var(--bg); padding: 20px; color: #333; margin: 0;
+            background-image: linear-gradient(rgba(244,247,249,0.94), rgba(244,247,249,0.94)), url('bg-pattern.jpg');
+            background-size: cover; background-attachment: fixed; background-position: center; }
+        .container { max-width: 850px; margin: 20px auto; background: rgba(255,255,255,0.94); padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        
+        /* Estilo para el Logo */
+        .logo-container { text-align: center; margin-bottom: 20px; }
+        .logo-img { max-width: 250px; height: auto; }
+        
+        header { text-align: center; border-bottom: 4px solid var(--primary); margin-bottom: 30px; padding-bottom: 10px; }
+        h1 { color: var(--primary); margin: 0; letter-spacing: 1px; font-size: 1.8em; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .section-title { grid-column: span 2; background: #f0f2f5; padding: 10px 15px; font-weight: bold; border-radius: 6px; border-left: 5px solid var(--primary); margin-top: 10px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-size: 0.9em; font-weight: bold; margin-bottom: 8px; color: #444; }
+        input, select { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1em; outline: none; }
+        .btn-calc { grid-column: span 2; text-align: center; margin-top: 30px; }
+        button { background: var(--primary); color: white; padding: 18px 60px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1.2em; transition: 0.3s; }
+        button:hover { background: var(--secondary); transform: translateY(-2px); }
+        
+        #resultado { display: none; margin-top: 40px; padding: 25px; background: #fff; border: 2px solid #e0e6ed; border-radius: 12px; }
+        .res-line { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #edf2f7; }
+        .total { font-size: 1.6em; color: var(--accent); font-weight: bold; margin-top: 15px; background: #fff5f5; padding: 15px; border-radius: 8px; }
+        
+        footer { text-align: center; margin-top: 40px; padding: 20px; font-size: 0.75em; color: #777; line-height: 1.6; border-top: 1px solid #eee; }
+        footer strong { color: #555; }
+
+        @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } .btn-calc, .section-title { grid-column: span 1; } }
+    </style>
+</head>
+<body>
+
+<div class="jp-topbar" style="background: var(--primary);">
+    <a href="index.html" class="jp-back">←</a>
+    <span class="jp-title">CALCULADORA CTS</span>
+    <div>
+        <button class="jp-theme-btn" id="jpThemeBtn" onclick="jpToggleTema()">🌙</button>
+        <button onclick="jpToggleSidebar()">☰</button>
+    </div>
+</div>
+
+<div class="jp-sidebar-overlay" id="jpOverlay" onclick="jpToggleSidebar()"></div>
+<div class="jp-sidebar" id="jpSidebar">
+    <div class="jp-sidebar-header">
+        <span>JP CALCULA</span>
+        <button onclick="jpToggleSidebar()">✕</button>
+    </div>
+    <a href="index.html">🏠 Inicio</a>
+    <a href="gratificacion.html">☀️ Gratificación</a>
+    <a href="cts.html" class="active">🔒 CTS</a>
+    <a href="liquidacion.html">📄 Liquidación</a>
+    <a href="sueldoneto.html">💵 Sueldo Neto</a>
+    <a href="vacaciones.html">🌴 Vacaciones</a>
+</div>
+
+<div class="container">
+    <!-- Logo Inicial -->
+    <div class="logo-container">
+        <img src="Gemini_Generated_Image_i91xsci91xsci91x.png" alt="Logo JPHR" class="logo-img">
+    </div>
+
+    <header>
+        <h1>Calculadora de CTS Profesional</h1>
+        <p style="margin-top: 5px; color: #666;">Decreto Legislativo N° 650 , TUO 001-97-TR Y D.S. N° 004-97-TR </p>
+        <div style="text-align:center; margin-top:12px;">
+            <button type="button" class="jp-ejemplo-btn" onclick="jpLlenarEjemploCTS()">✨ Ver un ejemplo</button>
+        </div>
+    </header>
+
+    <div class="grid">
+        <div class="section-title">📅 Configuración de Tiempo (Mes Comercial 30 Días)</div>
+        <div class="form-group">
+            <label>Fecha de Ingreso:</label>
+            <input type="date" id="fechaIngreso">
+        </div>
+        <div class="form-group">
+            <label>
+                <span class="jp-tip-wrap">Periodo a depositar:
+                    <button type="button" class="jp-tip-btn" onclick="jpToggleTip('tipPeriodo')">?</button>
+                    <span class="jp-tip-box" id="tipPeriodo">La CTS se deposita 2 veces al año: en <strong>mayo</strong> (por lo trabajado de noviembre a abril) y en <strong>noviembre</strong> (por lo trabajado de mayo a octubre).</span>
+                </span>
+            </label>
+            <select id="periodo">
+                <option value="mayo">Semestre Mayo (Cierre al 30 de Abril)</option>
+                <option value="noviembre">Semestre Noviembre (Cierre al 31 de Octubre)</option>
+            </select>
+        </div>
+
+        <div class="section-title">💰 Remuneración Computable</div>
+        <div class="form-group">
+            <label>Sueldo Base (S/):</label>
+            <input type="number" id="sueldo" placeholder="Ej: 2030">
+        </div>
+        <div class="form-group">
+            <label>
+                <span class="jp-tip-wrap">Asignación Familiar (S/):
+                    <button type="button" class="jp-tip-btn" onclick="jpToggleTip('tipAsigFam')">?</button>
+                    <span class="jp-tip-box" id="tipAsigFam">Monto extra que reciben los trabajadores con hijos menores de edad (o hasta 24 años si estudian). En 2026 equivale a S/113 (10% de la RMV). Si no tienes hijos, pon 0.</span>
+                </span>
+            </label>
+            <input type="number" id="asigFam" value="113">
+        </div>
+        <div class="form-group">
+            <label>
+                <span class="jp-tip-wrap">Promedio Comisiones/H. Extra (S/):
+                    <button type="button" class="jp-tip-btn" onclick="jpToggleTip('tipVariable')">?</button>
+                    <span class="jp-tip-box" id="tipVariable">Si tu sueldo varía cada mes por comisiones u horas extra, pon aquí el promedio de los últimos 6 meses. Si tu sueldo es fijo, déjalo en 0.</span>
+                </span>
+            </label>
+            <input type="number" id="promedioVariable" value="0" placeholder="0 si es sueldo fijo">
+        </div>
+        <div class="form-group">
+            <label>
+                <span class="jp-tip-wrap">Días de Faltas:
+                    <button type="button" class="jp-tip-btn" onclick="jpToggleTip('tipFaltas')">?</button>
+                    <span class="jp-tip-box" id="tipFaltas">Días que faltaste al trabajo sin justificación durante este semestre. Se descuentan proporcionalmente de tu CTS. Los permisos justificados o vacaciones no cuentan como falta.</span>
+                </span>
+            </label>
+            <input type="number" id="faltas" value="0">
+        </div>
+        <div class="form-group"></div>
+
+        <div class="jp-auto-box" style="grid-column: span 2;">
+            ✅ El <strong>1/6 de gratificación</strong> que se suma a la CTS se calcula automáticamente con tu sueldo y fecha de ingreso — <strong>sin incluir el Bono Extraordinario del 9%/6.75%</strong>, que por ley no forma parte de este cálculo. Así evitas el error más común: usar el monto total que te depositaron (que sí incluye el bono) en vez de la gratificación pura.
+        </div>
+
+        <div class="section-title">👤 Datos para el Reporte (opcional)</div>
+        <div class="form-group">
+            <label>Nombre Completo <span style="font-weight:400; color:#888;">(opcional)</span>:</label>
+            <input type="text" id="nombreTrabajador" placeholder="Solo si vas a generar el PDF">
+        </div>
+        <div class="form-group">
+            <label>DNI <span style="font-weight:400; color:#888;">(opcional)</span>:</label>
+            <input type="text" id="dniTrabajador" maxlength="8" inputmode="numeric" placeholder="Solo si vas a generar el PDF">
+        </div>
+
+        <div class="btn-calc" style="grid-column: span 2;">
+            <div class="jp-regimen-box" style="text-align:left;">
+                <span class="jp-regimen-title">
+                    <span class="jp-tip-wrap">🏢 Régimen Laboral
+                        <button type="button" class="jp-tip-btn" onclick="jpToggleTip('tipMype')">?</button>
+                        <span class="jp-tip-box" id="tipMype">Si tu empresa está registrada como "Pequeña Empresa" en REMYPE, por ley recibes la mitad de estos beneficios. Pregúntale a tu empleador o revisa tu boleta de pago si no estás seguro.</span>
+                    </span>
+                </span>
+                <div class="jp-switch-row">
+                    <span class="jp-switch-label">Aplicar régimen MYPE - Pequeña Empresa (50% del beneficio)</span>
+                    <label class="jp-switch">
+                        <input type="checkbox" id="regimenMype">
+                        <span class="jp-switch-slider"></span>
+                    </label>
+                </div>
+                <p class="jp-regimen-nota">En Pequeña Empresa, la CTS equivale a 15 días de remuneración por año (mitad del régimen general). No aplica a Microempresa, que no tiene derecho a CTS.</p>
+            </div>
+        </div>
+
+        <div id="jpErrorBox" class="jp-error-box"></div>
+
+        <div class="btn-calc">
+            <button onclick="ejecutarCalculoJPHR()">CALCULAR CTS</button>
+        </div>
+    </div>
+
+    <div id="resultado">
+        <h3 style="margin-top: 0; color: var(--primary);">Resumen del Beneficio</h3>
+        <div class="jp-resumen-simple" id="jpResumenSimple"></div>
+        <div class="res-line"><span>Tiempo Laborado Computable:</span> <span id="resTiempo" style="font-weight: bold;">-</span></div>
+        <div class="res-line"><span>Base Computable:</span> <span id="resBase" style="font-weight: bold;">S/ 0.00</span></div>
+        <div class="res-line"><span>Monto por Meses:</span> <span id="resMontoMeses">S/ 0.00</span></div>
+        <div class="res-line"><span>Monto por Días:</span> <span id="resMontoDias">S/ 0.00</span></div>
+        <div class="res-line"><span>Dscto. Faltas:</span> <span id="resFaltas" style="color: var(--accent);">- S/ 0.00</span></div>
+        <div class="res-line total"><span>Total a Depositar:</span> <span id="resTotal">S/ 0.00</span></div>
+
+        <details class="jp-explicacion">
+            <summary>¿Cómo se calculó?</summary>
+            <div class="jp-explicacion-body" id="jpExplicacion"></div>
+        </details>
+    </div>
+
+    <div id="pdfContainer" class="btn-calc" style="display:none; margin-top:25px;">
+        <button type="button" onclick="generarPDF()" style="background:#198754;">
+            📄 GENERAR REPORTE PDF
+        </button>
+    </div>
+
+    <div class="jp-historial">
+        <div class="jp-historial-header">
+            <span>📜 Historial de Cálculos</span>
+            <button type="button" onclick="jpBorrarHistorial('jp_hist_cts')">Borrar</button>
+        </div>
+        <div id="jpHistorialLista"></div>
+    </div>
+
+    <!-- Logo Final -->
+    <div class="logo-container" style="margin-top: 30px;">
+        <img src="Gemini_Generated_Image_i91xsci91xsci91x.png" alt="Logo JPHR" style="max-width: 120px;">
+    </div>
+
+    <footer>
+        <p>
+            © 2026 Creado por <strong>Jeferson Piero Gonzales Vera</strong>. Todos los derechos reservados.<br>
+            Los cálculos son aproximados y están basados en la normativa laboral peruana vigente.<br>
+            Si deseas algún servicio preciso, contáctame al correo: <strong>jefersonpgv29@gmail.com</strong>.
+        </p>
+    </footer>
+</div>
+
+<script>
+function calcularTiempoComputableGratiCTS(fechaInicioPeriodo, fechaFinPeriodo, fechaIngreso) {
+    const fInicio = fechaIngreso > fechaInicioPeriodo ? fechaIngreso : fechaInicioPeriodo;
+    const fFin = fechaFinPeriodo;
+    if (fInicio > fFin) return { meses: 0, dias: 0 };
+    const d_inicio = fInicio.getDate();
+    const m_inicio = fInicio.getMonth();
+    const m_fin = fFin.getMonth();
+    let meses, dias;
+    if (d_inicio === 1 || d_inicio === 31) {
+        meses = (fFin.getFullYear() - fInicio.getFullYear()) * 12 + (m_fin - m_inicio) + 1;
+        dias = 0;
+    } else {
+        dias = 30 - d_inicio + 1;
+        meses = (fFin.getFullYear() - fInicio.getFullYear()) * 12 + (m_fin - (m_inicio + 1)) + 1;
+    }
+    if (dias >= 30) { meses++; dias = 0; }
+    if (meses > 6) { meses = 6; dias = 0; }
+    if (meses < 0) { meses = 0; dias = 0; }
+    return { meses, dias };
+}
+
+// Calcula la gratificación BRUTA (sin Bono Extraordinario) del semestre que corresponde
+// sumar como "sexto" a la CTS: diciembre para el periodo Mayo, julio para el periodo Noviembre.
+function calcularSextoGratificacion(periodoCTS, fInicioCTS, fechaIngreso, sueldo, asigFam, promedioVariable, factor) {
+    const anio = fInicioCTS.getFullYear();
+    let inicioGrati, finGrati, mesGrati;
+    if (periodoCTS === 'mayo') {
+        inicioGrati = new Date(anio, 6, 1); finGrati = new Date(anio, 11, 31); mesGrati = 'diciembre';
+    } else {
+        inicioGrati = new Date(anio, 0, 1); finGrati = new Date(anio, 5, 30); mesGrati = 'julio';
+    }
+    const { meses, dias } = calcularTiempoComputableGratiCTS(inicioGrati, finGrati, fechaIngreso);
+    const remuneracionComputable = sueldo + asigFam + promedioVariable;
+    let gratificacionBruta = 0;
+    if (meses === 6) {
+        gratificacionBruta = remuneracionComputable;
+    } else {
+        // D.S. 005-2002-TR, Art. 3.4: solo meses calendario completos, sin prorratear días.
+        gratificacionBruta = (remuneracionComputable / 6) * meses;
+    }
+    gratificacionBruta *= factor;
+    return { gratificacionBruta, meses, dias, mesGrati };
+}
+
+function ejecutarCalculoJPHR() {
+    const fechaInput = document.getElementById('fechaIngreso').value;
+    const periodo = document.getElementById('periodo').value;
+    const sueldo = parseFloat(document.getElementById('sueldo').value) || 0;
+    const asigFam = parseFloat(document.getElementById('asigFam').value) || 0;
+    const promedioVariable = parseFloat(document.getElementById('promedioVariable').value) || 0;
+    const faltas = parseInt(document.getElementById('faltas').value) || 0;
+    const esMype = document.getElementById('regimenMype').checked;
+    const factor = esMype ? 0.5 : 1;
+
+    if (!fechaInput) { jpMostrarError('jpErrorBox', '⚠️ Falta tu fecha de ingreso para poder calcular tu CTS.'); return; }
+    jpOcultarError('jpErrorBox');
+
+    const fIngreso = new Date(fechaInput + 'T00:00:00');
+    let fInicio, fFin;
+
+    if (periodo === 'mayo') {
+        let añoCierre = (fIngreso.getMonth() > 3) ? fIngreso.getFullYear() + 1 : fIngreso.getFullYear();
+        fFin = new Date(añoCierre, 3, 30);
+        fInicio = new Date(añoCierre - 1, 10, 1);
+    } else {
+        let añoCierre = (fIngreso.getMonth() > 9) ? fIngreso.getFullYear() + 1 : fIngreso.getFullYear();
+        fFin = new Date(añoCierre, 9, 31);
+        fInicio = new Date(añoCierre, 4, 1);
+    }
+
+    let fCalculo = fIngreso > fInicio ? fIngreso : fInicio;
+    let meses = 0, dias = 0;
+    let m_inicio = fCalculo.getMonth(), d_inicio = fCalculo.getDate(), m_fin = fFin.getMonth();
+
+    if (d_inicio === 1 || d_inicio === 31) {
+        meses = (fFin.getFullYear() - fCalculo.getFullYear()) * 12 + (m_fin - m_inicio) + 1;
+    } else {
+        dias = 30 - d_inicio + 1;
+        meses = (fFin.getFullYear() - fCalculo.getFullYear()) * 12 + (m_fin - (m_inicio + 1)) + 1;
+    }
+
+    if (dias >= 30) { meses++; dias = 0; }
+    if (meses > 6) { meses = 6; dias = 0; }
+
+    const { gratificacionBruta, mesGrati } = calcularSextoGratificacion(periodo, fInicio, fIngreso, sueldo, asigFam, promedioVariable, factor);
+    const sextoGrati = gratificacionBruta / 6;
+
+    const base = sueldo + asigFam + sextoGrati;
+    const montoMes = (base / 12) * meses * factor;
+    const montoDia = (base / 12 / 30) * dias * factor;
+    const montoFaltas = (base / 12 / 30) * faltas * factor;
+    const total = Math.max(0, montoMes + montoDia - montoFaltas);
+
+    document.getElementById('resTiempo').innerText = `${meses} meses y ${dias} días`;
+    document.getElementById('resBase').innerText = `S/ ${base.toFixed(2)}`;
+    document.getElementById('resMontoMeses').innerText = `S/ ${montoMes.toFixed(2)}`;
+    document.getElementById('resMontoDias').innerText = `S/ ${montoDia.toFixed(2)}`;
+    document.getElementById('resFaltas').innerText = `- S/ ${montoFaltas.toFixed(2)}`;
+    document.getElementById('resTotal').innerText = `S/ ${total.toFixed(2)}`;
+
+    const nombreSemestre = periodo === 'mayo' ? 'mayo' : 'noviembre';
+    document.getElementById('jpResumenSimple').innerHTML =
+        total > 0
+            ? `💡 Esto significa que tu empleador debería depositarte <strong>S/ ${total.toFixed(2)}</strong> en tu cuenta de CTS antes del 15 de ${nombreSemestre}.`
+            : `💡 Con los datos ingresados, todavía no te corresponde un monto de CTS en este semestre.`;
+
+    document.getElementById('jpExplicacion').innerHTML = `
+Gratificación bruta de ${mesGrati} (sin Bono Extraordinario) = S/ ${gratificacionBruta.toFixed(2)}<br>
+1/6 de esa gratificación = ${gratificacionBruta.toFixed(2)} / 6 = S/ ${sextoGrati.toFixed(2)}<br>
+Base computable = ${sueldo} (sueldo) + ${asigFam} (asig. familiar) + ${sextoGrati.toFixed(2)} (1/6 grati.) = S/ ${base.toFixed(2)}<br>
+${esMype ? 'Régimen MYPE Pequeña Empresa: tasa reducida al 50%<br>' : ''}
+Monto por meses = (${base.toFixed(2)} / 12) × ${meses} ${esMype ? '× 0.5' : ''} = S/ ${montoMes.toFixed(2)}<br>
+Monto por días = (${base.toFixed(2)} / 12 / 30) × ${dias} ${esMype ? '× 0.5' : ''} = S/ ${montoDia.toFixed(2)}<br>
+Dscto. faltas = (${base.toFixed(2)} / 12 / 30) × ${faltas} ${esMype ? '× 0.5' : ''} = S/ ${montoFaltas.toFixed(2)}<br>
+<strong>Total = ${montoMes.toFixed(2)} + ${montoDia.toFixed(2)} − ${montoFaltas.toFixed(2)} = S/ ${total.toFixed(2)}</strong>
+    `;
+
+    document.getElementById('resultado').style.display = 'block';
+    document.getElementById('pdfContainer').style.display = 'block';
+    document.getElementById('resultado').scrollIntoView({ behavior: 'smooth' });
+
+    jpGuardarHistorial('jp_hist_cts', {
+        titulo: `CTS - ${periodo === 'mayo' ? 'Semestre Mayo' : 'Semestre Noviembre'}${esMype ? ' (MYPE)' : ''}`,
+        detalle: `Ingreso: ${fechaInput} | Tiempo: ${meses}m ${dias}d | Total: S/ ${total.toFixed(2)}`,
+    });
+}
+
+window.addEventListener('DOMContentLoaded', () => jpRenderHistorial('jp_hist_cts'));
+
+function jpLlenarEjemploCTS() {
+    document.getElementById('fechaIngreso').value = '2022-03-15';
+    document.getElementById('periodo').value = 'mayo';
+    document.getElementById('sueldo').value = 2030;
+    document.getElementById('asigFam').value = 113;
+    document.getElementById('promedioVariable').value = 0;
+    document.getElementById('faltas').value = 0;
+    ejecutarCalculoJPHR();
+}
+
+function generarPDF() {
+    const { jsPDF } = window.jspdf;
+    const nombre = document.getElementById('nombreTrabajador').value.trim();
+    const dni = document.getElementById('dniTrabajador').value.trim();
+    const fIngreso = document.getElementById('fechaIngreso').value;
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const margen = 18, ancho = 210;
+    let y = 18;
+
+    const textoResultado = id => document.getElementById(id).innerText || '-';
+    const fechaPDF = f => f ? f.split('-').reverse().join('/') : '-';
+
+    function titulo(texto) {
+        pdf.setFillColor(11, 61, 145);
+        pdf.rect(margen, y, ancho - margen * 2, 9, 'F');
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFont('helvetica', 'bold'); pdf.setFontSize(10.5);
+        pdf.text(texto, margen + 4, y + 6);
+        pdf.setTextColor(40, 40, 40); y += 14;
+    }
+    function linea(etiqueta, valor, negrita = false) {
+        pdf.setFont('helvetica', negrita ? 'bold' : 'normal');
+        pdf.setFontSize(negrita ? 9.5 : 9);
+        pdf.text(etiqueta, margen, y);
+        pdf.text(String(valor), ancho - margen, y, { align: 'right' });
+        y += 6;
+    }
+
+    pdf.setTextColor(11, 61, 145);
+    pdf.setFont('helvetica', 'bold'); pdf.setFontSize(20);
+    pdf.text('JP', margen, y);
+    pdf.setFontSize(14);
+    pdf.text('REPORTE DE CTS', ancho - margen, y, { align: 'right' });
+    y += 7;
+
+    pdf.setTextColor(100, 100, 100);
+    pdf.setFont('helvetica', 'normal'); pdf.setFontSize(8.5);
+    pdf.text('Decreto Legislativo N° 650, TUO 001-97-TR', margen, y);
+    pdf.text(document.getElementById('regimenMype').checked ? 'Régimen MYPE - Pequeña Empresa' : 'Régimen General', ancho - margen, y, { align: 'right' });
+    y += 8;
+
+    pdf.setDrawColor(11, 61, 145); pdf.setLineWidth(0.7);
+    pdf.line(margen, y, ancho - margen, y); y += 9;
+
+    if (nombre || dni) {
+        titulo('DATOS DEL TRABAJADOR');
+        if (nombre) linea('Nombre completo:', nombre, true);
+        if (dni) linea('DNI:', dni);
+        y += 2;
+    }
+
+    titulo('DETALLE DEL CÁLCULO');
+    linea('Fecha de ingreso:', fechaPDF(fIngreso));
+    linea('Tiempo laborado computable:', textoResultado('resTiempo'));
+    linea('Base computable:', textoResultado('resBase'));
+    linea('Monto por meses:', textoResultado('resMontoMeses'));
+    linea('Monto por días:', textoResultado('resMontoDias'));
+    linea('Descuento por faltas:', textoResultado('resFaltas'));
+    y += 3;
+
+    pdf.setFillColor(245, 245, 245);
+    pdf.roundedRect(margen, y, ancho - margen * 2, 19, 3, 3, 'F');
+    pdf.setTextColor(11, 61, 145);
+    pdf.setFont('helvetica', 'bold'); pdf.setFontSize(12.5);
+    pdf.text('TOTAL A DEPOSITAR', margen + 5, y + 8);
+    pdf.setFontSize(15);
+    pdf.text(textoResultado('resTotal'), ancho - margen - 5, y + 8, { align: 'right' });
+    y += 29;
+
+    pdf.setTextColor(100, 100, 100);
+    pdf.setFont('helvetica', 'normal'); pdf.setFontSize(7.8);
+    const nota = 'Documento generado mediante JP Calcula Tu Beneficio. Los cálculos son aproximados y están basados en la normativa laboral peruana vigente.';
+    pdf.text(pdf.splitTextToSize(nota, ancho - margen * 2), margen, y);
+    y += 14;
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Generado por Jeferson Piero Gonzales Vera', margen, y);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('© 2026 JPHR - Todos los derechos reservados.', ancho - margen, y, { align: 'right' });
+
+    const nombreArchivo = 'CTS_' + (nombre ? nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '').trim().replace(/\s+/g, '_') : 'Reporte') + '.pdf';
+    pdf.save(nombreArchivo);
+}
+</script>
+</body>
+</html>

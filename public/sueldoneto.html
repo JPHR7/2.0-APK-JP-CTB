@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPHR | Calculadora de Sueldo Neto</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="nav.css" rel="stylesheet">
+    <script src="nav.js" defer></script>
+    <script src="historial.js" defer></script>
+    <script src="theme-toggle.js" defer></script>
+    <script src="glosario.js" defer></script>
+    <style>
+        :root { --primary: #0e7c66; --secondary: #14a085; --accent: #d9534f; --bg: #f4f7f9; }
+        body { font-family: 'Roboto', sans-serif; background: var(--bg); padding: 20px; color: #333; margin: 0;
+            background-image: linear-gradient(rgba(244,247,249,0.94), rgba(244,247,249,0.94)), url('bg-pattern.jpg');
+            background-size: cover; background-attachment: fixed; background-position: center; }
+        .container { max-width: 850px; margin: 20px auto; background: rgba(255,255,255,0.94); padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .logo-container { text-align: center; margin-bottom: 20px; }
+        .logo-img { max-width: 250px; height: auto; }
+        header { text-align: center; border-bottom: 4px solid var(--primary); margin-bottom: 30px; padding-bottom: 10px; }
+        h1 { color: var(--primary); margin: 0; letter-spacing: 1px; font-size: 1.8em; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .section-title { grid-column: span 2; background: #f0f2f5; padding: 10px 15px; font-weight: bold; border-radius: 6px; border-left: 5px solid var(--primary); margin-top: 10px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-size: 0.9em; font-weight: bold; margin-bottom: 8px; color: #444; }
+        input, select { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1em; outline: none; }
+        .btn-calc { grid-column: span 2; text-align: center; margin-top: 30px; }
+        button { background: var(--primary); color: white; padding: 18px 60px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1.2em; transition: 0.3s; }
+        button:hover { background: var(--secondary); transform: translateY(-2px); }
+        #resultado { display: none; margin-top: 40px; padding: 25px; background: #fff; border: 2px solid #e0e6ed; border-radius: 12px; }
+        .res-line { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #edf2f7; }
+        .total { font-size: 1.6em; color: var(--primary); font-weight: bold; margin-top: 15px; background: #eafaf5; padding: 15px; border-radius: 8px; }
+        footer { text-align: center; margin-top: 40px; padding: 20px; font-size: 0.75em; color: #777; line-height: 1.6; border-top: 1px solid #eee; }
+        footer strong { color: #555; }
+        #campoAfp { display: none; }
+        @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } .btn-calc, .section-title { grid-column: span 1; } }
+    </style>
+</head>
+<body>
+
+<div class="jp-topbar" style="background: var(--primary);">
+    <a href="index.html" class="jp-back">←</a>
+    <span class="jp-title">SUELDO NETO</span>
+    <div>
+        <button class="jp-theme-btn" id="jpThemeBtn" onclick="jpToggleTema()">🌙</button>
+        <button onclick="jpToggleSidebar()">☰</button>
+    </div>
+</div>
+
+<div class="jp-sidebar-overlay" id="jpOverlay" onclick="jpToggleSidebar()"></div>
+<div class="jp-sidebar" id="jpSidebar">
+    <div class="jp-sidebar-header">
+        <span>JP CALCULA</span>
+        <button onclick="jpToggleSidebar()">✕</button>
+    </div>
+    <a href="index.html">🏠 Inicio</a>
+    <a href="gratificacion.html">☀️ Gratificación</a>
+    <a href="cts.html">🔒 CTS</a>
+    <a href="liquidacion.html">📄 Liquidación</a>
+    <a href="sueldoneto.html" class="active">💵 Sueldo Neto</a>
+    <a href="vacaciones.html">🌴 Vacaciones</a>
+</div>
+
+<div class="container">
+    <div class="logo-container">
+        <img src="Gemini_Generated_Image_i91xsci91xsci91x.png" alt="Logo JPHR" class="logo-img">
+    </div>
+
+    <header>
+        <h1>Calculadora de Sueldo Neto</h1>
+        <p style="margin-top: 5px; color: #666;">Descuentos de ONP/AFP e Impuesto a la Renta de 5ta Categoría (UIT 2026: S/ 5,500)</p>
+    </header>
+
+    <div class="grid">
+        <div class="section-title">💰 Ingresos</div>
+        <div class="form-group">
+            <label>Sueldo Bruto Mensual (S/):</label>
+            <input type="number" id="sueldo" placeholder="Ej: 2500">
+        </div>
+        <div class="form-group">
+            <label>Asignación Familiar (S/):</label>
+            <input type="number" id="asigFam" value="0">
+        </div>
+
+        <div class="section-title">🏦 Sistema de Pensiones</div>
+        <div class="form-group">
+            <label>Sistema:</label>
+            <select id="sistemaPension" onchange="document.getElementById('campoAfp').style.display = this.value === 'afp' ? 'contents' : 'none'">
+                <option value="onp">ONP (13%)</option>
+                <option value="afp">AFP</option>
+            </select>
+        </div>
+        <div class="form-group"></div>
+
+        <div id="campoAfp" style="display:contents;">
+            <div class="form-group">
+                <label>AFP - Prima de Seguro (%):</label>
+                <input type="number" id="afpPrima" value="1.37" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>AFP - Comisión (%):</label>
+                <input type="number" id="afpComision" value="0" step="0.01" placeholder="0 salvo que elijas un monto">
+            </div>
+        </div>
+
+        <div id="jpErrorBox" class="jp-error-box"></div>
+
+        <div class="btn-calc">
+            <button onclick="ejecutarCalculoSueldoNeto()">CALCULAR SUELDO NETO</button>
+        </div>
+    </div>
+
+    <div id="resultado">
+        <h3 style="margin-top: 0; color: var(--primary);">Resumen del Sueldo Neto</h3>
+        <div class="res-line"><span>Ingreso Bruto Mensual:</span> <span id="resBruto" style="font-weight: bold;">S/ 0.00</span></div>
+        <div class="res-line"><span>Descuento Sistema de Pensión:</span> <span id="resPension" style="color: var(--accent);">- S/ 0.00</span></div>
+        <div class="res-line"><span>Retención Renta 5ta Categoría:</span> <span id="resRenta" style="color: var(--accent);">- S/ 0.00</span></div>
+        <div class="res-line total"><span>Sueldo Neto Mensual:</span> <span id="resNeto">S/ 0.00</span></div>
+
+        <details class="jp-explicacion">
+            <summary>¿Cómo se calculó?</summary>
+            <div class="jp-explicacion-body" id="jpExplicacion"></div>
+        </details>
+    </div>
+
+    <div class="jp-historial">
+        <div class="jp-historial-header">
+            <span>📜 Historial de Cálculos</span>
+            <button type="button" onclick="jpBorrarHistorial('jp_hist_sueldoneto')">Borrar</button>
+        </div>
+        <div id="jpHistorialLista"></div>
+    </div>
+
+    <div class="logo-container" style="margin-top: 30px;">
+        <img src="Gemini_Generated_Image_i91xsci91xsci91x.png" alt="Logo JPHR" style="max-width: 120px;">
+    </div>
+
+    <footer>
+        <p>
+            © 2026 Creado por <strong>Jeferson Piero Gonzales Vera</strong>. Todos los derechos reservados.<br>
+            Cálculo aproximado y educativo. La retención real de Impuesto a la Renta puede variar mes a mes según el procedimiento oficial de proyección anual (SUNAT).<br>
+            Si deseas algún servicio preciso, contáctame al correo: <strong>jefersonpgv29@gmail.com</strong>.
+        </p>
+    </footer>
+</div>
+
+<script>
+const UIT_2026 = 5500;
+
+function calcularImpuestoRenta(rentaNetaAnual) {
+    const tramos = [
+        { limite: 5 * UIT_2026, tasa: 0.08 },
+        { limite: 20 * UIT_2026, tasa: 0.14 },
+        { limite: 35 * UIT_2026, tasa: 0.17 },
+        { limite: 45 * UIT_2026, tasa: 0.20 },
+        { limite: Infinity, tasa: 0.30 },
+    ];
+    let impuesto = 0, anterior = 0;
+    for (const t of tramos) {
+        if (rentaNetaAnual > anterior) {
+            const baseTramo = Math.min(rentaNetaAnual, t.limite) - anterior;
+            impuesto += baseTramo * t.tasa;
+            anterior = t.limite;
+        } else break;
+    }
+    return impuesto;
+}
+
+function ejecutarCalculoSueldoNeto() {
+    const sueldo = parseFloat(document.getElementById('sueldo').value) || 0;
+    const asigFam = parseFloat(document.getElementById('asigFam').value) || 0;
+    const sistema = document.getElementById('sistemaPension').value;
+    const afpPrima = parseFloat(document.getElementById('afpPrima').value) || 0;
+    const afpComision = parseFloat(document.getElementById('afpComision').value) || 0;
+
+    if (!sueldo) { jpMostrarError('jpErrorBox', '⚠️ Ingresa tu sueldo bruto mensual para poder calcular.'); return; }
+    jpOcultarError('jpErrorBox');
+
+    const ingresoBruto = sueldo + asigFam;
+
+    let descPension, detallePension;
+    if (sistema === 'onp') {
+        descPension = ingresoBruto * 0.13;
+        detallePension = `ONP: ${ingresoBruto.toFixed(2)} × 13% = S/ ${descPension.toFixed(2)}`;
+    } else {
+        const pctTotal = 10 + afpPrima + afpComision;
+        descPension = ingresoBruto * (pctTotal / 100);
+        detallePension = `AFP: ${ingresoBruto.toFixed(2)} × (10% aporte + ${afpPrima}% seguro + ${afpComision}% comisión = ${pctTotal.toFixed(2)}%) = S/ ${descPension.toFixed(2)}`;
+    }
+
+    const rentaAnualProyectada = ingresoBruto * 14; // 12 sueldos + 2 gratificaciones (julio y diciembre)
+    const deduccion7UIT = 7 * UIT_2026;
+    const rentaNeta = Math.max(0, rentaAnualProyectada - deduccion7UIT);
+    const impuestoAnual = calcularImpuestoRenta(rentaNeta);
+    const retencionMensual = impuestoAnual / 12;
+
+    const sueldoNeto = ingresoBruto - descPension - retencionMensual;
+
+    document.getElementById('resBruto').innerText = `S/ ${ingresoBruto.toFixed(2)}`;
+    document.getElementById('resPension').innerText = `- S/ ${descPension.toFixed(2)}`;
+    document.getElementById('resRenta').innerText = `- S/ ${retencionMensual.toFixed(2)}`;
+    document.getElementById('resNeto').innerText = `S/ ${sueldoNeto.toFixed(2)}`;
+
+    document.getElementById('jpExplicacion').innerHTML = `
+Ingreso bruto mensual = ${sueldo} + ${asigFam} = S/ ${ingresoBruto.toFixed(2)}<br>
+${detallePension}<br>
+Renta anual proyectada = ${ingresoBruto.toFixed(2)} × 14 (12 sueldos + 2 gratificaciones) = S/ ${rentaAnualProyectada.toFixed(2)}<br>
+Deducción legal = 7 UIT = 7 × ${UIT_2026} = S/ ${deduccion7UIT.toFixed(2)}<br>
+Renta neta anual = S/ ${rentaNeta.toFixed(2)}<br>
+Impuesto anual (tramos progresivos 8%/14%/17%/20%/30%) = S/ ${impuestoAnual.toFixed(2)}<br>
+Retención mensual = ${impuestoAnual.toFixed(2)} / 12 = S/ ${retencionMensual.toFixed(2)}<br>
+<strong>Sueldo neto = ${ingresoBruto.toFixed(2)} − ${descPension.toFixed(2)} − ${retencionMensual.toFixed(2)} = S/ ${sueldoNeto.toFixed(2)}</strong>
+    `;
+
+    document.getElementById('resultado').style.display = 'block';
+    document.getElementById('resultado').scrollIntoView({ behavior: 'smooth' });
+
+    jpGuardarHistorial('jp_hist_sueldoneto', {
+        titulo: `Sueldo Neto (${sistema.toUpperCase()})`,
+        detalle: `Bruto: S/ ${ingresoBruto.toFixed(2)} | Neto: S/ ${sueldoNeto.toFixed(2)}`,
+    });
+}
+
+window.addEventListener('DOMContentLoaded', () => jpRenderHistorial('jp_hist_sueldoneto'));
+</script>
+</body>
+</html>

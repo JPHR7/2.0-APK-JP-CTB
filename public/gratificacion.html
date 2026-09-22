@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPHR | Calculadora de Gratificación</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="nav.css" rel="stylesheet">
+    <script src="nav.js" defer></script>
+    <script src="historial.js" defer></script>
+    <script src="theme-toggle.js" defer></script>
+    <script src="glosario.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root { --primary: #a4161a; --secondary: #e5484d; --accent: #d9a404; --bg: #f4f7f9; }
+        body { font-family: 'Roboto', sans-serif; background: var(--bg); padding: 20px; color: #333; margin: 0;
+            background-image: linear-gradient(rgba(244,247,249,0.94), rgba(244,247,249,0.94)), url('bg-pattern.jpg');
+            background-size: cover; background-attachment: fixed; background-position: center; }
+        .container { max-width: 850px; margin: 20px auto; background: rgba(255,255,255,0.94); padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        header { text-align: center; border-bottom: 4px solid var(--primary); margin-bottom: 30px; padding-bottom: 10px; }
+        h1 { color: var(--primary); margin: 0; letter-spacing: 1px; font-size: 1.8em; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .section-title { grid-column: span 2; background: #f0f2f5; padding: 10px 15px; font-weight: bold; border-radius: 6px; border-left: 5px solid var(--primary); margin-top: 10px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-size: 0.9em; font-weight: bold; margin-bottom: 8px; color: #444; }
+        input, select { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1em; outline: none; }
+        .checkbox-row { grid-column: span 2; display: flex; align-items: center; gap: 10px; }
+        .checkbox-row input { width: auto; }
+        .btn-calc { grid-column: span 2; text-align: center; margin-top: 30px; }
+        button { background: var(--primary); color: white; padding: 18px 60px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1.2em; transition: 0.3s; }
+        button:hover { background: var(--secondary); transform: translateY(-2px); }
+        #resultado { display: none; margin-top: 40px; padding: 25px; background: #fff; border: 2px solid #e0e6ed; border-radius: 12px; }
+        .res-line { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #edf2f7; }
+        .total { font-size: 1.6em; color: var(--accent); font-weight: bold; margin-top: 15px; background: #fff5f5; padding: 15px; border-radius: 8px; }
+        .obs { font-size: 0.85em; color: #666; margin-top: 10px; font-style: italic; }
+        footer { text-align: center; margin-top: 40px; padding: 20px; font-size: 0.75em; color: #777; line-height: 1.6; border-top: 1px solid #eee; }
+        footer strong { color: #555; }
+
+        /* Estilo para el Logo */
+        .logo-container { text-align: center; margin-bottom: 20px; }
+        .logo-img { max-width: 250px; height: auto; }
+        @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } .btn-calc, .section-title, .checkbox-row { grid-column: span 1; } }
+    </style>
+</head>
+<body>
+
+<div class="jp-topbar" style="background: var(--primary);">
+    <a href="index.html" class="jp-back">←</a>
+    <span class="jp-title">GRATIFICACIÓN</span>
+    <div>
+        <button class="jp-theme-btn" id="jpThemeBtn" onclick="jpToggleTema()">🌙</button>
+        <button onclick="jpToggleSidebar()">☰</button>
+    </div>
+</div>
+
+<div class="jp-sidebar-overlay" id="jpOverlay" onclick="jpToggleSidebar()"></div>
+<div class="jp-sidebar" id="jpSidebar">
+    <div class="jp-sidebar-header">
+        <span>JP CALCULA</span>
+        <button onclick="jpToggleSidebar()">✕</button>
+    </div>
+    <a href="index.html">🏠 Inicio</a>
+    <a href="gratificacion.html" class="active">☀️ Gratificación</a>
+    <a href="cts.html">🔒 CTS</a>
+    <a href="liquidacion.html">📄 Liquidación</a>
+    <a href="sueldoneto.html">💵 Sueldo Neto</a>
+    <a href="vacaciones.html">🌴 Vacaciones</a>
+</div>
+
+<div class="container">
+    <!-- Logo Inicial -->
+    <div class="logo-container">
+        <img src="Gemini_Generated_Image_i91xsci91xsci91x.png" alt="Logo JPHR" class="logo-img">
+    </div>
+
+    <header>
+        <h1>Calculadora de Gratificación</h1>
+        <p style="margin-top: 5px; color: #666;">Julio / Diciembre - Ley N° 27735 y Bono Extraordinario (Ley 30334)</p>
+        <div style="text-align:center; margin-top:12px;">
+            <button type="button" class="jp-ejemplo-btn" onclick="jpLlenarEjemploGrati()">✨ Ver un ejemplo</button>
+        </div>
+    </header>
+
+    <div class="grid">
+        <div class="section-title">📅 Datos del Periodo</div>
+        <div class="form-group">
+            <label>Fecha de Ingreso:</label>
+            <input type="date" id="fechaIngreso">
+        </div>
+        <div class="form-group">
+            <label>
+                <span class="jp-tip-wrap">Periodo a calcular:
+                    <button type="button" class="jp-tip-btn" onclick="jpToggleTip('tipPeriodo')">?</button>
+                    <span class="jp-tip-box" id="tipPeriodo">La gratificación de <strong>julio</strong> paga lo trabajado de enero a junio; la de <strong>diciembre</strong>, lo trabajado de julio a diciembre. Se debe pagar hasta el 15 de cada mes.</span>
+                </span>
+            </label>
+            <select id="periodo">
+                <option value="julio">Gratificación Julio (Ene - Jun)</option>
+                <option value="diciembre">Gratificación Diciembre (Jul - Dic)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Año del periodo:</label>
+            <input type="number" id="anio" value="2026">
+        </div>
+        <div class="form-group">
+            <label>
+                <span class="jp-tip-wrap">Régimen de Salud:
+                    <button type="button" class="jp-tip-btn" onclick="jpToggleTip('tipSalud')">?</button>
+                    <span class="jp-tip-box" id="tipSalud">Define el % del Bono Extraordinario que te corresponde: 9% si tu empleador te afilia a EsSalud (lo normal), 6.75% si te afilia a una EPS privada.</span>
+                </span>
+            </label>
+            <select id="regimenSalud">
+                <option value="essalud">EsSalud (bono 9%)</option>
+                <option value="eps">EPS (bono 6.75%)</option>
+            </select>
+        </div>
+
+        <div class="checkbox-row">
+            <input type="checkbox" id="tieneCese" onchange="document.getElementById('grupoCese').style.display = this.checked ? 'flex' : 'none'">
+            <label style="margin: 0;">El trabajador ya cesó (gratificación trunca)</label>
+        </div>
+        <div class="form-group" id="grupoCese" style="display:none;">
+            <label>Fecha de Cese:</label>
+            <input type="date" id="fechaCese">
+        </div>
+
+        <div class="section-title">💰 Remuneración Computable</div>
+        <div class="form-group">
+            <label>Sueldo Base (S/):</label>
+            <input type="number" id="sueldo" placeholder="Ej: 2030">
+        </div>
+        <div class="form-group">
+            <label>
+                <span class="jp-tip-wrap">Asignación Familiar (S/):
+                    <button type="button" class="jp-tip-btn" onclick="jpToggleTip('tipAsigFam')">?</button>
+                    <span class="jp-tip-box" id="tipAsigFam">Monto extra para trabajadores con hijos menores de edad (o hasta 24 años si estudian). En 2026 es S/113. Si no tienes hijos, pon 0.</span>
+                </span>
+            </label>
+            <input type="number" id="asigFam" value="113">
+        </div>
+        <div class="form-group">
+            <label>Promedio Comisiones/H. Extra (S/):</label>
+            <input type="number" id="promedioVariable" value="0" placeholder="0 si es sueldo fijo">
+        </div>
+
+        <div class="section-title">👤 Datos para el Reporte (opcional)</div>
+        <div class="form-group">
+            <label>Nombre Completo <span style="font-weight:400; color:#888;">(opcional)</span>:</label>
+            <input type="text" id="nombreTrabajador" placeholder="Solo si vas a generar el PDF">
+        </div>
+        <div class="form-group">
+            <label>DNI <span style="font-weight:400; color:#888;">(opcional)</span>:</label>
+            <input type="text" id="dniTrabajador" maxlength="8" inputmode="numeric" placeholder="Solo si vas a generar el PDF">
+        </div>
+
+        <div class="btn-calc" style="grid-column: span 2;">
+            <div class="jp-regimen-box" style="text-align:left;">
+                <span class="jp-regimen-title">🏢 Régimen Laboral</span>
+                <div class="jp-switch-row">
+                    <span class="jp-switch-label">Aplicar régimen MYPE - Pequeña Empresa (50% del beneficio)</span>
+                    <label class="jp-switch">
+                        <input type="checkbox" id="regimenMype">
+                        <span class="jp-switch-slider"></span>
+                    </label>
+                </div>
+                <p class="jp-regimen-nota">En Pequeña Empresa, la gratificación equivale a media remuneración por semestre completo (mitad del régimen general). No aplica a Microempresa, que no tiene derecho a gratificación.</p>
+            </div>
+        </div>
+
+        <div id="jpErrorBox" class="jp-error-box"></div>
+
+        <div class="btn-calc">
+            <button onclick="ejecutarCalculoGratificacion()">CALCULAR GRATIFICACIÓN</button>
+        </div>
+    </div>
+
+    <div id="resultado">
+        <h3 style="margin-top: 0; color: var(--primary);">Resumen del Beneficio</h3>
+        <div class="jp-resumen-simple" id="jpResumenSimple"></div>
+        <div class="res-line"><span>Tiempo Computable:</span> <span id="resTiempo" style="font-weight: bold;">-</span></div>
+        <div class="res-line"><span>Remuneración Computable:</span> <span id="resBase" style="font-weight: bold;">S/ 0.00</span></div>
+        <div class="res-line"><span>Gratificación Bruta:</span> <span id="resGrati">S/ 0.00</span></div>
+        <div class="res-line"><span>Bono Extraordinario:</span> <span id="resBono">S/ 0.00</span></div>
+        <div class="res-line total"><span>Total a Pagar:</span> <span id="resTotal">S/ 0.00</span></div>
+        <div class="obs" id="resObs"></div>
+
+        <details class="jp-explicacion">
+            <summary>¿Cómo se calculó?</summary>
+            <div class="jp-explicacion-body" id="jpExplicacion"></div>
+        </details>
+    </div>
+
+    <div id="pdfContainer" class="btn-calc" style="display:none; margin-top:25px;">
+        <button type="button" onclick="generarPDF()" style="background:#198754;">
+            📄 GENERAR REPORTE PDF
+        </button>
+    </div>
+
+    <div class="jp-historial">
+        <div class="jp-historial-header">
+            <span>📜 Historial de Cálculos</span>
+            <button type="button" onclick="jpBorrarHistorial('jp_hist_gratificacion')">Borrar</button>
+        </div>
+        <div id="jpHistorialLista"></div>
+    </div>
+
+    <!-- Logo Final -->
+    <div class="logo-container" style="margin-top: 30px;">
+        <img src="Gemini_Generated_Image_i91xsci91xsci91x.png" alt="Logo JPHR" style="max-width: 120px;">
+    </div>
+
+    <footer>
+        <p>
+            © 2026 Creado por <strong>Jeferson Piero Gonzales Vera</strong>. Todos los derechos reservados.<br>
+            Los cálculos son aproximados y están basados en la normativa laboral peruana vigente.<br>
+            Si deseas algún servicio preciso, contáctame al correo: <strong>jefersonpgv29@gmail.com</strong>.
+        </p>
+    </footer>
+</div>
+
+<script>
+function calcularTiempoComputable(fechaInicioPeriodo, fechaFinPeriodo, fechaIngreso, fechaCese) {
+    const fInicio = fechaIngreso > fechaInicioPeriodo ? fechaIngreso : fechaInicioPeriodo;
+    const fFin = fechaCese && fechaCese < fechaFinPeriodo ? fechaCese : fechaFinPeriodo;
+    if (fInicio > fFin) return { meses: 0, dias: 0, sinDerecho: true };
+
+    const d_inicio = fInicio.getDate();
+    const m_inicio = fInicio.getMonth();
+    const m_fin = fFin.getMonth();
+    let meses, dias;
+
+    if (d_inicio === 1 || d_inicio === 31) {
+        meses = (fFin.getFullYear() - fInicio.getFullYear()) * 12 + (m_fin - m_inicio) + 1;
+        dias = 0;
+    } else {
+        dias = 30 - d_inicio + 1;
+        meses = (fFin.getFullYear() - fInicio.getFullYear()) * 12 + (m_fin - (m_inicio + 1)) + 1;
+    }
+    if (dias >= 30) { meses++; dias = 0; }
+    if (meses > 6) { meses = 6; dias = 0; }
+    if (meses < 0) { meses = 0; dias = 0; }
+    return { meses, dias, sinDerecho: false };
+}
+
+function ejecutarCalculoGratificacion() {
+    const fechaIngresoInput = document.getElementById('fechaIngreso').value;
+    const tieneCese = document.getElementById('tieneCese').checked;
+    const fechaCeseInput = document.getElementById('fechaCese').value;
+    const periodo = document.getElementById('periodo').value;
+    const anio = parseInt(document.getElementById('anio').value) || 2026;
+    const regimenSalud = document.getElementById('regimenSalud').value;
+    const sueldo = parseFloat(document.getElementById('sueldo').value) || 0;
+    const asigFam = parseFloat(document.getElementById('asigFam').value) || 0;
+    const promedioVariable = parseFloat(document.getElementById('promedioVariable').value) || 0;
+    const esMype = document.getElementById('regimenMype').checked;
+    const factor = esMype ? 0.5 : 1;
+
+    if (!fechaIngresoInput) { jpMostrarError('jpErrorBox', '⚠️ Falta tu fecha de ingreso para poder calcular tu gratificación.'); return; }
+    if (tieneCese && !fechaCeseInput) { jpMostrarError('jpErrorBox', '⚠️ Marcaste que ya cesó, pero falta la fecha de cese.'); return; }
+    jpOcultarError('jpErrorBox');
+
+    const fechaIngreso = new Date(fechaIngresoInput + 'T00:00:00');
+    const fechaCese = tieneCese ? new Date(fechaCeseInput + 'T00:00:00') : null;
+
+    let fInicioPeriodo, fFinPeriodo;
+    if (periodo === 'julio') {
+        fInicioPeriodo = new Date(anio, 0, 1);
+        fFinPeriodo = new Date(anio, 5, 30);
+    } else {
+        fInicioPeriodo = new Date(anio, 6, 1);
+        fFinPeriodo = new Date(anio, 11, 31);
+    }
+
+    const { meses, dias, sinDerecho } = calcularTiempoComputable(fInicioPeriodo, fFinPeriodo, fechaIngreso, fechaCese);
+    const remuneracionComputable = sueldo + asigFam + promedioVariable;
+
+    let gratificacionBruta = 0, bonoExtraordinario = 0, totalAPagar = 0, observacion = '';
+
+    if (sinDerecho || meses === 0) {
+        observacion = 'No cumple el mínimo de 1 mes completo laborado en el periodo.';
+    } else {
+        if (meses === 6) {
+            gratificacionBruta = remuneracionComputable * factor;
+        } else {
+            // D.S. 005-2002-TR, Art. 3.4: solo se pagan MESES CALENDARIO COMPLETOS.
+            // Los días sueltos de un mes incompleto se descartan (no se prorratean, a diferencia de la CTS).
+            gratificacionBruta = ((remuneracionComputable / 6) * meses) * factor;
+        }
+        const porcentajeBono = regimenSalud === 'eps' ? 0.0675 : 0.09;
+        bonoExtraordinario = gratificacionBruta * porcentajeBono;
+        totalAPagar = gratificacionBruta + bonoExtraordinario;
+        observacion = meses === 6 ? 'Semestre completo: gratificación íntegra.' : 'Gratificación proporcional (trunca o por ingreso a mitad de periodo).';
+    }
+
+    document.getElementById('resTiempo').innerText = `${meses} meses completos${dias > 0 ? ` (+${dias} días que no se pagan, según ley)` : ''}`;
+    document.getElementById('resBase').innerText = `S/ ${remuneracionComputable.toFixed(2)}`;
+    document.getElementById('resGrati').innerText = `S/ ${gratificacionBruta.toFixed(2)}`;
+    document.getElementById('resBono').innerText = `S/ ${bonoExtraordinario.toFixed(2)}`;
+    document.getElementById('resTotal').innerText = `S/ ${totalAPagar.toFixed(2)}`;
+
+    const nombreMes = periodo === 'julio' ? 'julio' : 'diciembre';
+    document.getElementById('jpResumenSimple').innerHTML =
+        totalAPagar > 0
+            ? `💡 Esto significa que tu empleador debería depositarte <strong>S/ ${totalAPagar.toFixed(2)}</strong> por tu gratificación de ${nombreMes}, antes del día 15.`
+            : `💡 Con los datos ingresados, todavía no te corresponde un monto de gratificación en este periodo.`;
+    document.getElementById('resObs').innerText = observacion;
+
+    document.getElementById('jpExplicacion').innerHTML = sinDerecho || meses === 0
+        ? 'No hay cálculo: no se cumplió el mínimo de 1 mes completo.'
+        : `
+Remuneración computable = ${sueldo} + ${asigFam} + ${promedioVariable} = S/ ${remuneracionComputable.toFixed(2)}<br>
+${esMype ? 'Régimen MYPE Pequeña Empresa: tasa reducida al 50%<br>' : ''}
+${dias > 0 ? `Nota: solo cuentan meses <strong>calendario completos</strong> (D.S. 005-2002-TR). Los ${dias} días restantes de un mes incompleto no se pagan.<br>` : ''}
+Gratificación bruta = ${meses === 6 ? `${remuneracionComputable.toFixed(2)} (semestre completo)` : `(${remuneracionComputable.toFixed(2)}/6 × ${meses} meses completos)`} ${esMype ? '× 0.5' : ''} = S/ ${gratificacionBruta.toFixed(2)}<br>
+Bono extraordinario = ${gratificacionBruta.toFixed(2)} × ${regimenSalud === 'eps' ? '6.75%' : '9%'} = S/ ${bonoExtraordinario.toFixed(2)}<br>
+<strong>Total = ${gratificacionBruta.toFixed(2)} + ${bonoExtraordinario.toFixed(2)} = S/ ${totalAPagar.toFixed(2)}</strong>
+        `;
+
+    document.getElementById('resultado').style.display = 'block';
+    document.getElementById('pdfContainer').style.display = 'block';
+    document.getElementById('resultado').scrollIntoView({ behavior: 'smooth' });
+
+    jpGuardarHistorial('jp_hist_gratificacion', {
+        titulo: `Gratificación ${periodo === 'julio' ? 'Julio' : 'Diciembre'} ${anio}${esMype ? ' (MYPE)' : ''}`,
+        detalle: `Ingreso: ${fechaIngresoInput} | Tiempo: ${meses}m ${dias}d | Total: S/ ${totalAPagar.toFixed(2)}`,
+    });
+}
+
+window.addEventListener('DOMContentLoaded', () => jpRenderHistorial('jp_hist_gratificacion'));
+
+function jpLlenarEjemploGrati() {
+    document.getElementById('fechaIngreso').value = '2022-03-15';
+    document.getElementById('periodo').value = 'julio';
+    document.getElementById('anio').value = 2026;
+    document.getElementById('regimenSalud').value = 'essalud';
+    document.getElementById('tieneCese').checked = false;
+    document.getElementById('grupoCese').style.display = 'none';
+    document.getElementById('sueldo').value = 2030;
+    document.getElementById('asigFam').value = 113;
+    document.getElementById('promedioVariable').value = 0;
+    ejecutarCalculoGratificacion();
+}
+
+function generarPDF() {
+    const { jsPDF } = window.jspdf;
+    const nombre = document.getElementById('nombreTrabajador').value.trim();
+    const dni = document.getElementById('dniTrabajador').value.trim();
+    const fIngreso = document.getElementById('fechaIngreso').value;
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const margen = 18, ancho = 210;
+    let y = 18;
+
+    const textoResultado = id => document.getElementById(id).innerText || '-';
+    const fechaPDF = f => f ? f.split('-').reverse().join('/') : '-';
+
+    function titulo(texto) {
+        pdf.setFillColor(164, 22, 26);
+        pdf.rect(margen, y, ancho - margen * 2, 9, 'F');
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFont('helvetica', 'bold'); pdf.setFontSize(10.5);
+        pdf.text(texto, margen + 4, y + 6);
+        pdf.setTextColor(40, 40, 40); y += 14;
+    }
+    function linea(etiqueta, valor, negrita = false) {
+        pdf.setFont('helvetica', negrita ? 'bold' : 'normal');
+        pdf.setFontSize(negrita ? 9.5 : 9);
+        pdf.text(etiqueta, margen, y);
+        pdf.text(String(valor), ancho - margen, y, { align: 'right' });
+        y += 6;
+    }
+
+    pdf.setTextColor(164, 22, 26);
+    pdf.setFont('helvetica', 'bold'); pdf.setFontSize(20);
+    pdf.text('JP', margen, y);
+    pdf.setFontSize(14);
+    pdf.text('REPORTE DE GRATIFICACIÓN', ancho - margen, y, { align: 'right' });
+    y += 7;
+
+    pdf.setTextColor(100, 100, 100);
+    pdf.setFont('helvetica', 'normal'); pdf.setFontSize(8.5);
+    pdf.text('Ley N° 27735 y Bono Extraordinario (Ley 30334)', margen, y);
+    pdf.text(document.getElementById('regimenMype').checked ? 'Régimen MYPE - Pequeña Empresa' : 'Régimen General', ancho - margen, y, { align: 'right' });
+    y += 8;
+
+    pdf.setDrawColor(164, 22, 26); pdf.setLineWidth(0.7);
+    pdf.line(margen, y, ancho - margen, y); y += 9;
+
+    if (nombre || dni) {
+        titulo('DATOS DEL TRABAJADOR');
+        if (nombre) linea('Nombre completo:', nombre, true);
+        if (dni) linea('DNI:', dni);
+        y += 2;
+    }
+
+    titulo('DETALLE DEL CÁLCULO');
+    linea('Fecha de ingreso:', fechaPDF(fIngreso));
+    linea('Tiempo computable:', textoResultado('resTiempo'));
+    linea('Remuneración computable:', textoResultado('resBase'));
+    linea('Gratificación bruta:', textoResultado('resGrati'));
+    linea('Bono extraordinario:', textoResultado('resBono'));
+    y += 3;
+
+    pdf.setFillColor(245, 245, 245);
+    pdf.roundedRect(margen, y, ancho - margen * 2, 19, 3, 3, 'F');
+    pdf.setTextColor(164, 22, 26);
+    pdf.setFont('helvetica', 'bold'); pdf.setFontSize(12.5);
+    pdf.text('TOTAL A PAGAR', margen + 5, y + 8);
+    pdf.setFontSize(15);
+    pdf.text(textoResultado('resTotal'), ancho - margen - 5, y + 8, { align: 'right' });
+    y += 29;
+
+    pdf.setTextColor(100, 100, 100);
+    pdf.setFont('helvetica', 'normal'); pdf.setFontSize(7.8);
+    const nota = 'Documento generado mediante JP Calcula Tu Beneficio. Los cálculos son aproximados y están basados en la normativa laboral peruana vigente.';
+    pdf.text(pdf.splitTextToSize(nota, ancho - margen * 2), margen, y);
+    y += 14;
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Generado por Jeferson Piero Gonzales Vera', margen, y);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('© 2026 JPHR - Todos los derechos reservados.', ancho - margen, y, { align: 'right' });
+
+    const nombreArchivo = 'Gratificacion_' + (nombre ? nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '').trim().replace(/\s+/g, '_') : 'Reporte') + '.pdf';
+    pdf.save(nombreArchivo);
+}
+</script>
+</body>
+</html>

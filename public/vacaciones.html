@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPHR | Calculadora de Vacaciones</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="nav.css" rel="stylesheet">
+    <script src="nav.js" defer></script>
+    <script src="historial.js" defer></script>
+    <script src="theme-toggle.js" defer></script>
+    <script src="glosario.js" defer></script>
+    <style>
+        :root { --primary: #5b2a9e; --secondary: #7c3fc9; --accent: #d9534f; --bg: #f4f7f9; }
+        body { font-family: 'Roboto', sans-serif; background: var(--bg); padding: 20px; color: #333; margin: 0;
+            background-image: linear-gradient(rgba(244,247,249,0.94), rgba(244,247,249,0.94)), url('bg-pattern.jpg');
+            background-size: cover; background-attachment: fixed; background-position: center; }
+        .container { max-width: 850px; margin: 20px auto; background: rgba(255,255,255,0.94); padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .logo-container { text-align: center; margin-bottom: 20px; }
+        .logo-img { max-width: 250px; height: auto; }
+        header { text-align: center; border-bottom: 4px solid var(--primary); margin-bottom: 30px; padding-bottom: 10px; }
+        h1 { color: var(--primary); margin: 0; letter-spacing: 1px; font-size: 1.8em; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .section-title { grid-column: span 2; background: #f0f2f5; padding: 10px 15px; font-weight: bold; border-radius: 6px; border-left: 5px solid var(--primary); margin-top: 10px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-size: 0.9em; font-weight: bold; margin-bottom: 8px; color: #444; }
+        input, select { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1em; outline: none; }
+        .btn-calc { grid-column: span 2; text-align: center; margin-top: 30px; }
+        button { background: var(--primary); color: white; padding: 18px 60px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1.2em; transition: 0.3s; }
+        button:hover { background: var(--secondary); transform: translateY(-2px); }
+        #resultado { display: none; margin-top: 40px; padding: 25px; background: #fff; border: 2px solid #e0e6ed; border-radius: 12px; }
+        .res-line { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #edf2f7; }
+        .total { font-size: 1.6em; color: var(--primary); font-weight: bold; margin-top: 15px; background: #f4eefc; padding: 15px; border-radius: 8px; }
+        .obs-box { margin-top: 16px; padding: 14px 16px; border-radius: 10px; font-size: 0.88em; line-height: 1.6; }
+        .obs-trunca { background: #fff5e6; border: 1px solid #f0c674; color: #8a6100; }
+        .obs-gozar { background: #eafaf0; border: 1px solid #8fd4ab; color: #1e7a45; }
+        .obs-alerta { background: #fdecec; border: 1px solid #f0a5a5; color: #a4161a; margin-top: 8px; }
+        footer { text-align: center; margin-top: 40px; padding: 20px; font-size: 0.75em; color: #777; line-height: 1.6; border-top: 1px solid #eee; }
+        footer strong { color: #555; }
+        @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } .btn-calc, .section-title { grid-column: span 1; } }
+    </style>
+</head>
+<body>
+
+<div class="jp-topbar" style="background: var(--primary);">
+    <a href="index.html" class="jp-back">←</a>
+    <span class="jp-title">VACACIONES</span>
+    <div>
+        <button class="jp-theme-btn" id="jpThemeBtn" onclick="jpToggleTema()">🌙</button>
+        <button onclick="jpToggleSidebar()">☰</button>
+    </div>
+</div>
+
+<div class="jp-sidebar-overlay" id="jpOverlay" onclick="jpToggleSidebar()"></div>
+<div class="jp-sidebar" id="jpSidebar">
+    <div class="jp-sidebar-header">
+        <span>JP CALCULA</span>
+        <button onclick="jpToggleSidebar()">✕</button>
+    </div>
+    <a href="index.html">🏠 Inicio</a>
+    <a href="gratificacion.html">☀️ Gratificación</a>
+    <a href="cts.html">🔒 CTS</a>
+    <a href="liquidacion.html">📄 Liquidación</a>
+    <a href="sueldoneto.html">💵 Sueldo Neto</a>
+    <a href="vacaciones.html" class="active">🌴 Vacaciones</a>
+</div>
+
+<div class="container">
+    <div class="logo-container">
+        <img src="Gemini_Generated_Image_i91xsci91xsci91x.png" alt="Logo JPHR" class="logo-img">
+    </div>
+
+    <header>
+        <h1>Calculadora de Vacaciones</h1>
+        <p style="margin-top: 5px; color: #666;">Vacaciones Gozadas y Truncas - D. Leg. 713, D.S. 012-92-TR</p>
+    </header>
+
+    <div class="grid">
+        <div class="section-title">📅 Datos del Trabajador</div>
+        <div class="form-group">
+            <label>Fecha de Ingreso:</label>
+            <input type="date" id="fechaIngreso">
+        </div>
+        <div class="form-group">
+            <label>Fecha de Cálculo:</label>
+            <input type="date" id="fechaCalculo">
+        </div>
+
+        <div class="section-title">💰 Remuneración</div>
+        <div class="form-group">
+            <label>Sueldo Base (S/):</label>
+            <input type="number" id="sueldo" placeholder="Ej: 2030">
+        </div>
+        <div class="form-group">
+            <label>Asignación Familiar (S/):</label>
+            <input type="number" id="asigFam" value="113">
+        </div>
+
+        <div class="section-title">🏖️ Vacaciones Ya Gozadas</div>
+        <div class="form-group" style="grid-column: span 2;">
+            <label>Días ya gozados de un periodo vencido (opcional):</label>
+            <input type="number" id="diasGozados" value="0" min="0">
+            <small style="margin-top:6px; color:#777;">Si ya descansaste parte o todo un periodo completo anterior, indícalo aquí para descontarlo.</small>
+        </div>
+
+        <div class="btn-calc" style="grid-column: span 2;">
+            <div class="jp-regimen-box" style="text-align:left;">
+                <span class="jp-regimen-title">🏢 Régimen Laboral</span>
+                <div class="jp-switch-row">
+                    <span class="jp-switch-label">Aplicar régimen MYPE - Pequeña Empresa (15 días/año en vez de 30)</span>
+                    <label class="jp-switch">
+                        <input type="checkbox" id="regimenMype">
+                        <span class="jp-switch-slider"></span>
+                    </label>
+                </div>
+                <p class="jp-regimen-nota">No aplica a Microempresa (también 15 días, pero con otras reglas no cubiertas aquí).</p>
+            </div>
+        </div>
+
+        <div id="jpErrorBox" class="jp-error-box"></div>
+
+        <div class="btn-calc">
+            <button onclick="ejecutarCalculoVacaciones()">CALCULAR VACACIONES</button>
+        </div>
+    </div>
+
+    <div id="resultado">
+        <h3 style="margin-top: 0; color: var(--primary);">Resumen de Vacaciones</h3>
+        <div class="res-line"><span>Tiempo de Servicios:</span> <span id="resTiempoTotal" style="font-weight: bold;">-</span></div>
+        <div class="res-line"><span>Periodos Completos de Servicio:</span> <span id="resPeriodos">-</span></div>
+        <div class="res-line"><span>Días Vencidos Pendientes de Goce:</span> <span id="resDiasVencidos">-</span></div>
+        <div class="res-line"><span>Monto por Días Vencidos:</span> <span id="resMontoVencidos">S/ 0.00</span></div>
+        <div class="res-line"><span>Días Truncos (periodo en curso):</span> <span id="resDiasTruncos">-</span></div>
+        <div class="res-line"><span>Monto por Días Truncos:</span> <span id="resMontoTruncos">S/ 0.00</span></div>
+        <div class="res-line total"><span>Total Vacaciones (S/):</span> <span id="resTotal">S/ 0.00</span></div>
+
+        <div id="jpObservacion"></div>
+
+        <details class="jp-explicacion">
+            <summary>¿Cómo se calculó?</summary>
+            <div class="jp-explicacion-body" id="jpExplicacion"></div>
+        </details>
+    </div>
+
+    <div class="jp-historial">
+        <div class="jp-historial-header">
+            <span>📜 Historial de Cálculos</span>
+            <button type="button" onclick="jpBorrarHistorial('jp_hist_vacaciones')">Borrar</button>
+        </div>
+        <div id="jpHistorialLista"></div>
+    </div>
+
+    <div class="logo-container" style="margin-top: 30px;">
+        <img src="Gemini_Generated_Image_i91xsci91xsci91x.png" alt="Logo JPHR" style="max-width: 120px;">
+    </div>
+
+    <footer>
+        <p>
+            © 2026 Creado por <strong>Jeferson Piero Gonzales Vera</strong>. Todos los derechos reservados.<br>
+            Los cálculos son aproximados y están basados en la normativa laboral peruana vigente.<br>
+            Si deseas algún servicio preciso, contáctame al correo: <strong>jefersonpgv29@gmail.com</strong>.
+        </p>
+    </footer>
+</div>
+
+<script>
+// Cálculo de tiempo por calendario real (años/meses/días), igual que en Liquidación
+function calcularTiempoCalendario(fechaInicio, fechaFin) {
+    if (fechaFin < fechaInicio) return { anios: 0, meses: 0, dias: 0, mesesTotal: 0 };
+    let d1 = fechaInicio.getDate(), m1 = fechaInicio.getMonth() + 1, y1 = fechaInicio.getFullYear();
+    let d2 = fechaFin.getDate(), m2 = fechaFin.getMonth() + 1, y2 = fechaFin.getFullYear();
+    if (d2 === 31) d2 = 30;
+    if (d1 === 31) d1 = 30;
+    let totalDias = (y2 - y1) * 360 + (m2 - m1) * 30 + (d2 - d1) + 1;
+    if (totalDias < 0) totalDias = 0;
+    const mesesTotal = Math.floor(totalDias / 30);
+    const dias = totalDias % 30;
+    const anios = Math.floor(mesesTotal / 12);
+    const meses = mesesTotal % 12;
+    return { anios, meses, dias, mesesTotal };
+}
+
+function ejecutarCalculoVacaciones() {
+    const fIngresoInput = document.getElementById('fechaIngreso').value;
+    const fCalculoInput = document.getElementById('fechaCalculo').value || new Date().toISOString().slice(0, 10);
+    document.getElementById('fechaCalculo').value = fCalculoInput;
+
+    if (!fIngresoInput) { jpMostrarError('jpErrorBox', '⚠️ Ingresa tu fecha de ingreso para poder calcular.'); return; }
+    jpOcultarError('jpErrorBox');
+
+    const fechaIngreso = new Date(fIngresoInput + 'T00:00:00');
+    const fechaCalculo = new Date(fCalculoInput + 'T00:00:00');
+    if (fechaCalculo < fechaIngreso) { jpMostrarError('jpErrorBox', '⚠️ La fecha de cálculo no puede ser anterior a la fecha de ingreso.'); return; }
+
+    const sueldo = parseFloat(document.getElementById('sueldo').value) || 0;
+    const asigFam = parseFloat(document.getElementById('asigFam').value) || 0;
+    const diasGozados = Math.max(0, parseInt(document.getElementById('diasGozados').value) || 0);
+    const esMype = document.getElementById('regimenMype').checked;
+    const diasPorAnio = esMype ? 15 : 30;
+    const remuneracionVacacional = sueldo + asigFam;
+    const valorDia = remuneracionVacacional / 30;
+
+    const t = calcularTiempoCalendario(fechaIngreso, fechaCalculo);
+
+    const diasVencidosBrutos = t.anios * diasPorAnio;
+    const diasVencidosPendientes = Math.max(0, diasVencidosBrutos - Math.min(diasGozados, diasVencidosBrutos));
+    const montoVencidos = diasVencidosPendientes * valorDia;
+
+    const diasTruncos = (t.meses * diasPorAnio / 12) + (t.dias * diasPorAnio / 360);
+    const montoTruncos = diasTruncos * valorDia;
+
+    const total = montoVencidos + montoTruncos;
+
+    document.getElementById('resTiempoTotal').innerText = `${t.anios} años, ${t.meses} meses y ${t.dias} días`;
+    document.getElementById('resPeriodos').innerText = `${t.anios} periodo(s) completo(s)`;
+    document.getElementById('resDiasVencidos').innerText = `${diasVencidosPendientes.toFixed(1)} días`;
+    document.getElementById('resMontoVencidos').innerText = `S/ ${montoVencidos.toFixed(2)}`;
+    document.getElementById('resDiasTruncos').innerText = `${diasTruncos.toFixed(1)} días`;
+    document.getElementById('resMontoTruncos').innerText = `S/ ${montoTruncos.toFixed(2)}`;
+    document.getElementById('resTotal').innerText = `S/ ${total.toFixed(2)}`;
+
+    let obsHtml = '';
+    if (t.anios === 0) {
+        obsHtml = `<div class="obs-box obs-trunca">⚠️ Aún no has cumplido 1 año de servicios (llevas ${t.meses} meses y ${t.dias} días). Todo lo calculado son <strong>vacaciones truncas</strong>: acumuladas, pero todavía no tienes un periodo completo para gozar como descanso físico.</div>`;
+    } else {
+        obsHtml = `<div class="obs-box obs-gozar">✅ Has completado ${t.anios} periodo(s) de servicio: tienes <strong>${diasVencidosPendientes.toFixed(1)} días de vacaciones para gozar</strong> (periodo vencido)${diasGozados > 0 ? `, luego de descontar ${diasGozados} día(s) que indicaste como ya gozados` : ''}. Además, llevas ${diasTruncos.toFixed(1)} días truncos acumulados del periodo en curso (aún no completas otro año).</div>`;
+        if (t.anios >= 2) {
+            obsHtml += `<div class="obs-box obs-alerta">🚨 Tienes ${t.anios} periodos completos sin gozar. Acumular más de 1 periodo vencido puede generar el derecho a una indemnización adicional (una remuneración extra por cada periodo no gozado dentro del año siguiente a que venció), según el D. Leg. 713.</div>`;
+        }
+    }
+    document.getElementById('jpObservacion').innerHTML = obsHtml;
+
+    document.getElementById('jpExplicacion').innerHTML = `
+Tiempo de servicios (calendario real) = ${t.anios} años, ${t.meses} meses, ${t.dias} días<br>
+Remuneración vacacional = ${sueldo} + ${asigFam} = S/ ${remuneracionVacacional.toFixed(2)} → valor día = S/ ${valorDia.toFixed(2)}<br>
+${esMype ? 'Régimen MYPE Pequeña Empresa: 15 días/año (en vez de 30)<br>' : ''}
+Días vencidos brutos = ${t.anios} periodo(s) × ${diasPorAnio} días = ${diasVencidosBrutos} días<br>
+Días vencidos pendientes = ${diasVencidosBrutos} − ${Math.min(diasGozados, diasVencidosBrutos)} (ya gozados) = ${diasVencidosPendientes.toFixed(1)} días → S/ ${montoVencidos.toFixed(2)}<br>
+Días truncos = (${t.meses} × ${diasPorAnio}/12) + (${t.dias} × ${diasPorAnio}/360) = ${diasTruncos.toFixed(1)} días → S/ ${montoTruncos.toFixed(2)}<br>
+<strong>Total = ${montoVencidos.toFixed(2)} + ${montoTruncos.toFixed(2)} = S/ ${total.toFixed(2)}</strong>
+    `;
+
+    document.getElementById('resultado').style.display = 'block';
+    document.getElementById('resultado').scrollIntoView({ behavior: 'smooth' });
+
+    jpGuardarHistorial('jp_hist_vacaciones', {
+        titulo: `Vacaciones${esMype ? ' (MYPE)' : ''} - al ${fCalculoInput}`,
+        detalle: `Ingreso: ${fIngresoInput} | ${t.anios} periodo(s) | Total: S/ ${total.toFixed(2)}`,
+    });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    jpRenderHistorial('jp_hist_vacaciones');
+    const hoy = new Date().toISOString().slice(0, 10);
+    const campo = document.getElementById('fechaCalculo');
+    if (campo && !campo.value) campo.value = hoy;
+});
+</script>
+</body>
+</html>

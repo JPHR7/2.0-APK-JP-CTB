@@ -1,0 +1,6 @@
+{
+  "name": "JP Calcula Tus Beneficios",
+  "description": "Calculadora laboral de beneficios sociales en Perú: CTS, Gratificación, Liquidación, Sueldo Neto y Vacaciones.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
